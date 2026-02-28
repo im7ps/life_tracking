@@ -11,23 +11,12 @@ class ConsultantEngine:
     This is separated from the Service to allow for complex ranking/selection algorithms.
     """
 
-    # Seeds to ensure the user always has something to do
-    SEED_TASKS = [
-        {"description": "Meditazione 15 minuti", "category": "Energia", "difficulty": 1, "fulfillment": 4, "slug": "energia"},
-        {"description": "Suonare uno strumento", "category": "Passione", "difficulty": 2, "fulfillment": 5, "slug": "passione"},
-        {"description": "Pulizia profonda 20 min", "category": "Dovere", "difficulty": 3, "fulfillment": 3, "slug": "dovere"},
-        {"description": "Esercizio Fisico Intenso", "category": "Energia", "difficulty": 5, "fulfillment": 4, "slug": "energia"},
-        {"description": "Lettura Formativa", "category": "Anima", "difficulty": 2, "fulfillment": 5, "slug": "anima"},
-        {"description": "Revisione Obiettivi", "category": "Dovere", "difficulty": 1, "fulfillment": 3, "slug": "dovere"},
-        {"description": "Connessione Sociale", "category": "Relazioni", "difficulty": 1, "fulfillment": 4, "slug": "relazioni"},
-    ]
-
     def __init__(self, action_repo: ActionRepo):
         self.action_repo = action_repo
 
     async def _build_pool(self, user_id: uuid.UUID) -> List[dict]:
         """
-        Builds the full list of candidate task dicts for a user (history + seeds,
+        Builds the full list of candidate task dicts for a user (history only,
         excluding tasks already completed today). Does NOT apply random selection.
         """
         history = await self.action_repo.get_all_by_user(user_id)
@@ -43,11 +32,11 @@ class ConsultantEngine:
             t for t in portfolio
             if t['description'].lower() not in completed_today
         ]
-        return self._merge_seeds_into_pool(available_portfolio, completed_today)
+        return available_portfolio
 
     async def generate_proposals(self, user_id: uuid.UUID, count: int = 5) -> List[Action]:
         """
-        Orchestrates the selection of tasks based on history and seeds.
+        Orchestrates the selection of tasks based on history.
         """
         pool = await self._build_pool(user_id)
         selected_tasks = self._select_balanced_subset(pool, count)
@@ -79,25 +68,6 @@ class ConsultantEngine:
                     "dimension_id": action.dimension_id
                 }
         return list(unique_tasks.values())
-
-    def _merge_seeds_into_pool(self, portfolio: List[dict], completed_today: Set[str]) -> List[dict]:
-        """
-        Combines user tasks with seeds, avoiding duplicates.
-        """
-        pool = list(portfolio)
-        portfolio_descriptions = {t['description'].lower() for t in portfolio}
-        
-        for seed in self.SEED_TASKS:
-            desc_lower = seed['description'].lower()
-            if desc_lower not in portfolio_descriptions and desc_lower not in completed_today:
-                pool.append({
-                    "description": seed['description'],
-                    "category": seed['category'],
-                    "difficulty": seed['difficulty'],
-                    "fulfillment": seed['fulfillment'],
-                    "dimension_id": seed['slug'] # Seed uses slug as fallback dimension_id
-                })
-        return pool
 
     def _select_balanced_subset(self, pool: List[dict], count: int) -> List[dict]:
         """

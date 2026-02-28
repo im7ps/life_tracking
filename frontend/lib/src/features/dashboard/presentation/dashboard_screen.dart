@@ -6,6 +6,7 @@ import 'dashboard_providers.dart';
 import 'widgets/day0/rank_widget.dart';
 import 'widgets/day0/checkpoint_bar.dart';
 import 'widgets/day0/identity_grid.dart';
+import 'widgets/visualizations/category_visualizer.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -221,6 +222,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        CategoryVisualizer(category: cat, tasks: tasks),
                         const SizedBox(height: 16),
                         IdentityGrid(
                           tasks: tasks,

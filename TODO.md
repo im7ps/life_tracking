@@ -28,3 +28,29 @@
 # Migliorare il login, fa schifo
 # Curare la light mode
 # Cambiare lo sfondo delle schermate in dark mode e light mode
+
+## idee nuove
+# mettere le notifiche che mostrano il progresso di una task a tempo per poterla estendere o terminare
+# inserire la possibilità di creare liste nelle task "es prendere medicine: un text dove scrivi tutte le medicine che devi prendere con casella per spuntare quelle prese
+# inserire task ricorrenti es: prendere medicine se le devi prendere ogni giorno senza dover avviare la task ogni volta
+# inserire varie personalità dell llm per tarare in base ai gusti dell'utente
+# inserire icona in alto a destra con punto interrogativo per triggerare il tutorial di come usare l'app (bisogna anche creare il tutorial perchè ancora non esiste)
+
+
+💡 Idee per nuove integrazioni (Oltre il TODO)
+1. L'Albero dell'Identità (Visualizzazione): Una visualizzazione grafica (tipo albero
+    o costellazione) che cresce in base alle categorie completate. Se fai molto
+    "Dovere", un ramo diventa robusto; se fai "Passione", nascono fiori. Serve a dare
+    un feedback visivo immediato a lungo termine.
+2. Focus Mode con "Deep Work": Un timer integrato nell'app che, quando attivo,
+    registra il tempo effettivo di esecuzione. Potrebbe includere suoni binaurali o
+    rumore bianco per aiutare la concentrazione.
+3. Sfide Context-Aware: Se il GPS rileva che sei in palestra o al parco, l'Agente ti
+    invia una notifica: "Vedo che sei nel posto giusto, vuoi iniziare [Task Palestra]
+    ora?".
+4. Riflessione Post-Task: Invece di completare e basta, l'app potrebbe chiedere: "Ti
+    senti più [Energico/Soddisfatto] dopo questa attività?". Questo dato serve al
+    Consulente per affinare i consigli futuri (AI personalizzata).
+5. Modalità "Burnout Prevention": Se l'app rileva troppe task di "Dovere" completate e
+    nessuna di "Energia/Passione", l'Agente interviene forzando una proposta di riposo
+    o svago.
