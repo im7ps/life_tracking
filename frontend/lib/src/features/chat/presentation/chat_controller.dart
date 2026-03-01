@@ -60,6 +60,9 @@ class ChatController extends _$ChatController {
             addUserMessage(result.recognizedWords);
           }
         },
+        listenFor: const Duration(seconds: 60),
+        pauseFor: const Duration(seconds: 10), // Più tempo per pensare/parlare
+        listenMode: ListenMode.dictation,
       );
     }
     return available;
