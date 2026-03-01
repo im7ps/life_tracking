@@ -16,6 +16,7 @@ _$ActionImpl _$$ActionImplFromJson(Map<String, dynamic> json) => _$ActionImpl(
   category: json['category'] as String? ?? "Dovere",
   difficulty: (json['difficulty'] as num?)?.toInt() ?? 3,
   status: json['status'] as String? ?? "COMPLETED",
+  icon: json['icon'] as String? ?? "briefcase",
   fulfillmentScore: (json['fulfillment_score'] as num).toInt(),
   durationMinutes: (json['duration_minutes'] as num?)?.toInt(),
   userId: json['user_id'] as String,
@@ -41,6 +42,7 @@ Map<String, dynamic> _$$ActionImplToJson(_$ActionImpl instance) =>
       'category': instance.category,
       'difficulty': instance.difficulty,
       'status': instance.status,
+      'icon': instance.icon,
       'fulfillment_score': instance.fulfillmentScore,
       'duration_minutes': instance.durationMinutes,
       'user_id': instance.userId,
@@ -66,6 +68,13 @@ _$ActionCreateImpl _$$ActionCreateImplFromJson(Map<String, dynamic> json) =>
       category: json['category'] as String? ?? "Dovere",
       difficulty: (json['difficulty'] as num?)?.toInt() ?? 3,
       status: json['status'] as String? ?? "COMPLETED",
+      icon: json['icon'] as String? ?? "briefcase",
+      subTasks:
+          (json['sub_tasks'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
+      isRecurring: json['is_recurring'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$ActionCreateImplToJson(_$ActionCreateImpl instance) =>
@@ -79,4 +88,7 @@ Map<String, dynamic> _$$ActionCreateImplToJson(_$ActionCreateImpl instance) =>
       'category': instance.category,
       'difficulty': instance.difficulty,
       'status': instance.status,
+      'icon': instance.icon,
+      'sub_tasks': instance.subTasks,
+      'is_recurring': instance.isRecurring,
     };

@@ -7,6 +7,7 @@ class PortfolioCard extends StatelessWidget {
   final int completionCount;
   final double avgSatisfaction;
   final IconData icon;
+  final List<dynamic> subTasks;
   final VoidCallback onTap;
   final VoidCallback onScegli;
 
@@ -17,6 +18,7 @@ class PortfolioCard extends StatelessWidget {
     required this.completionCount,
     required this.avgSatisfaction,
     required this.icon,
+    this.subTasks = const [],
     required this.onTap,
     required this.onScegli,
   });
@@ -54,9 +56,22 @@ class PortfolioCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "Soddisfazione: ${avgSatisfaction.toStringAsFixed(1)}",
-                      style: theme.textTheme.labelSmall?.copyWith(color: AppColors.grey),
+                    Row(
+                      children: [
+                        Text(
+                          "Soddisfazione: ${avgSatisfaction.toStringAsFixed(1)}",
+                          style: theme.textTheme.labelSmall?.copyWith(color: AppColors.grey),
+                        ),
+                        if (subTasks.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          Icon(Icons.checklist_rounded, size: 12, color: AppColors.grey.withValues(alpha: 0.6)),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${subTasks.length}",
+                            style: theme.textTheme.labelSmall?.copyWith(color: AppColors.grey.withValues(alpha: 0.6)),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

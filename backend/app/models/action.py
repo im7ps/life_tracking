@@ -23,6 +23,7 @@ class Action(SQLModel, table=True):
     category: str = Field(default="Dovere", index=True) 
     difficulty: int = Field(default=3, ge=1, le=5)
     status: str = Field(default="COMPLETED", index=True) # COMPLETED, FAILED, POSTPONED, IN_PROGRESS
+    icon: Optional[str] = Field(default="briefcase") # FontAwesome icon name or slug
     
     # Fulfillment Score (1-5) - acts as satisfaction
     fulfillment_score: int = Field(default=3, ge=1, le=5)

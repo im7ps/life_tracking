@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -79,6 +80,38 @@ class _DynamicBackgroundState extends State<DynamicBackground> with SingleTicker
               ],
             );
           },
+        ),
+        
+        // Glassmorphism Blur Layer
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.1),
+              BlendMode.darken,
+            ),
+            child: Container(
+              color: Colors.transparent,
+            ),
+          ),
+        ),
+        
+        // Adding image filter blur separately for better control
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                backgroundBlendMode: BlendMode.overlay,
+              ),
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+            ),
+          ),
         ),
         
         widget.child,

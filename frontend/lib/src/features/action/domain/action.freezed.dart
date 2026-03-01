@@ -28,6 +28,7 @@ mixin _$Action {
   String get category => throw _privateConstructorUsedError;
   int get difficulty => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  String get icon => throw _privateConstructorUsedError;
   int get fulfillmentScore => throw _privateConstructorUsedError;
   int? get durationMinutes => throw _privateConstructorUsedError;
   String get userId => throw _privateConstructorUsedError;
@@ -59,6 +60,7 @@ abstract class $ActionCopyWith<$Res> {
     String category,
     int difficulty,
     String status,
+    String icon,
     int fulfillmentScore,
     int? durationMinutes,
     String userId,
@@ -94,6 +96,7 @@ class _$ActionCopyWithImpl<$Res, $Val extends Action>
     Object? category = null,
     Object? difficulty = null,
     Object? status = null,
+    Object? icon = null,
     Object? fulfillmentScore = null,
     Object? durationMinutes = freezed,
     Object? userId = null,
@@ -132,6 +135,10 @@ class _$ActionCopyWithImpl<$Res, $Val extends Action>
             status: null == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
+                      as String,
+            icon: null == icon
+                ? _value.icon
+                : icon // ignore: cast_nullable_to_non_nullable
                       as String,
             fulfillmentScore: null == fulfillmentScore
                 ? _value.fulfillmentScore
@@ -201,6 +208,7 @@ abstract class _$$ActionImplCopyWith<$Res> implements $ActionCopyWith<$Res> {
     String category,
     int difficulty,
     String status,
+    String icon,
     int fulfillmentScore,
     int? durationMinutes,
     String userId,
@@ -236,6 +244,7 @@ class __$$ActionImplCopyWithImpl<$Res>
     Object? category = null,
     Object? difficulty = null,
     Object? status = null,
+    Object? icon = null,
     Object? fulfillmentScore = null,
     Object? durationMinutes = freezed,
     Object? userId = null,
@@ -274,6 +283,10 @@ class __$$ActionImplCopyWithImpl<$Res>
         status: null == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
+                  as String,
+        icon: null == icon
+            ? _value.icon
+            : icon // ignore: cast_nullable_to_non_nullable
                   as String,
         fulfillmentScore: null == fulfillmentScore
             ? _value.fulfillmentScore
@@ -323,6 +336,7 @@ class _$ActionImpl implements _Action {
     this.category = "Dovere",
     this.difficulty = 3,
     this.status = "COMPLETED",
+    this.icon = "briefcase",
     required this.fulfillmentScore,
     this.durationMinutes,
     required this.userId,
@@ -354,6 +368,9 @@ class _$ActionImpl implements _Action {
   @JsonKey()
   final String status;
   @override
+  @JsonKey()
+  final String icon;
+  @override
   final int fulfillmentScore;
   @override
   final int? durationMinutes;
@@ -381,7 +398,7 @@ class _$ActionImpl implements _Action {
 
   @override
   String toString() {
-    return 'Action(id: $id, startTime: $startTime, endTime: $endTime, description: $description, category: $category, difficulty: $difficulty, status: $status, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, userId: $userId, dimensionId: $dimensionId, completionCount: $completionCount, subTasks: $subTasks, isRecurring: $isRecurring, dimension: $dimension)';
+    return 'Action(id: $id, startTime: $startTime, endTime: $endTime, description: $description, category: $category, difficulty: $difficulty, status: $status, icon: $icon, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, userId: $userId, dimensionId: $dimensionId, completionCount: $completionCount, subTasks: $subTasks, isRecurring: $isRecurring, dimension: $dimension)';
   }
 
   @override
@@ -400,6 +417,7 @@ class _$ActionImpl implements _Action {
             (identical(other.difficulty, difficulty) ||
                 other.difficulty == difficulty) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.icon, icon) || other.icon == icon) &&
             (identical(other.fulfillmentScore, fulfillmentScore) ||
                 other.fulfillmentScore == fulfillmentScore) &&
             (identical(other.durationMinutes, durationMinutes) ||
@@ -427,6 +445,7 @@ class _$ActionImpl implements _Action {
     category,
     difficulty,
     status,
+    icon,
     fulfillmentScore,
     durationMinutes,
     userId,
@@ -460,6 +479,7 @@ abstract class _Action implements Action {
     final String category,
     final int difficulty,
     final String status,
+    final String icon,
     required final int fulfillmentScore,
     final int? durationMinutes,
     required final String userId,
@@ -486,6 +506,8 @@ abstract class _Action implements Action {
   int get difficulty;
   @override
   String get status;
+  @override
+  String get icon;
   @override
   int get fulfillmentScore;
   @override
@@ -526,6 +548,9 @@ mixin _$ActionCreate {
   String get category => throw _privateConstructorUsedError;
   int get difficulty => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  String get icon => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>> get subTasks => throw _privateConstructorUsedError;
+  bool get isRecurring => throw _privateConstructorUsedError;
 
   /// Serializes this ActionCreate to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -554,6 +579,9 @@ abstract class $ActionCreateCopyWith<$Res> {
     String category,
     int difficulty,
     String status,
+    String icon,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
   });
 }
 
@@ -581,6 +609,9 @@ class _$ActionCreateCopyWithImpl<$Res, $Val extends ActionCreate>
     Object? category = null,
     Object? difficulty = null,
     Object? status = null,
+    Object? icon = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
   }) {
     return _then(
       _value.copyWith(
@@ -620,6 +651,18 @@ class _$ActionCreateCopyWithImpl<$Res, $Val extends ActionCreate>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as String,
+            icon: null == icon
+                ? _value.icon
+                : icon // ignore: cast_nullable_to_non_nullable
+                      as String,
+            subTasks: null == subTasks
+                ? _value.subTasks
+                : subTasks // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
+            isRecurring: null == isRecurring
+                ? _value.isRecurring
+                : isRecurring // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -645,6 +688,9 @@ abstract class _$$ActionCreateImplCopyWith<$Res>
     String category,
     int difficulty,
     String status,
+    String icon,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
   });
 }
 
@@ -671,6 +717,9 @@ class __$$ActionCreateImplCopyWithImpl<$Res>
     Object? category = null,
     Object? difficulty = null,
     Object? status = null,
+    Object? icon = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
   }) {
     return _then(
       _$ActionCreateImpl(
@@ -710,6 +759,18 @@ class __$$ActionCreateImplCopyWithImpl<$Res>
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
                   as String,
+        icon: null == icon
+            ? _value.icon
+            : icon // ignore: cast_nullable_to_non_nullable
+                  as String,
+        subTasks: null == subTasks
+            ? _value._subTasks
+            : subTasks // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
+        isRecurring: null == isRecurring
+            ? _value.isRecurring
+            : isRecurring // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -728,7 +789,10 @@ class _$ActionCreateImpl implements _ActionCreate {
     this.category = "Dovere",
     this.difficulty = 3,
     this.status = "COMPLETED",
-  });
+    this.icon = "briefcase",
+    final List<Map<String, dynamic>> subTasks = const [],
+    this.isRecurring = false,
+  }) : _subTasks = subTasks;
 
   factory _$ActionCreateImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActionCreateImplFromJson(json);
@@ -754,10 +818,25 @@ class _$ActionCreateImpl implements _ActionCreate {
   @override
   @JsonKey()
   final String status;
+  @override
+  @JsonKey()
+  final String icon;
+  final List<Map<String, dynamic>> _subTasks;
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get subTasks {
+    if (_subTasks is EqualUnmodifiableListView) return _subTasks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subTasks);
+  }
+
+  @override
+  @JsonKey()
+  final bool isRecurring;
 
   @override
   String toString() {
-    return 'ActionCreate(description: $description, startTime: $startTime, endTime: $endTime, dimensionId: $dimensionId, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, category: $category, difficulty: $difficulty, status: $status)';
+    return 'ActionCreate(description: $description, startTime: $startTime, endTime: $endTime, dimensionId: $dimensionId, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, category: $category, difficulty: $difficulty, status: $status, icon: $icon, subTasks: $subTasks, isRecurring: $isRecurring)';
   }
 
   @override
@@ -780,7 +859,11 @@ class _$ActionCreateImpl implements _ActionCreate {
                 other.category == category) &&
             (identical(other.difficulty, difficulty) ||
                 other.difficulty == difficulty) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.icon, icon) || other.icon == icon) &&
+            const DeepCollectionEquality().equals(other._subTasks, _subTasks) &&
+            (identical(other.isRecurring, isRecurring) ||
+                other.isRecurring == isRecurring));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -796,6 +879,9 @@ class _$ActionCreateImpl implements _ActionCreate {
     category,
     difficulty,
     status,
+    icon,
+    const DeepCollectionEquality().hash(_subTasks),
+    isRecurring,
   );
 
   /// Create a copy of ActionCreate
@@ -823,6 +909,9 @@ abstract class _ActionCreate implements ActionCreate {
     final String category,
     final int difficulty,
     final String status,
+    final String icon,
+    final List<Map<String, dynamic>> subTasks,
+    final bool isRecurring,
   }) = _$ActionCreateImpl;
 
   factory _ActionCreate.fromJson(Map<String, dynamic> json) =
@@ -846,6 +935,12 @@ abstract class _ActionCreate implements ActionCreate {
   int get difficulty;
   @override
   String get status;
+  @override
+  String get icon;
+  @override
+  List<Map<String, dynamic>> get subTasks;
+  @override
+  bool get isRecurring;
 
   /// Create a copy of ActionCreate
   /// with the given fields replaced by the non-null parameter values.

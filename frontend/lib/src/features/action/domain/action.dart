@@ -14,6 +14,7 @@ class Action with _$Action {
     @Default("Dovere") String category,
     @Default(3) int difficulty,
     @Default("COMPLETED") String status,
+    @Default("briefcase") String icon,
     required int fulfillmentScore,
     int? durationMinutes,
     required String userId,
@@ -39,6 +40,9 @@ class ActionCreate with _$ActionCreate {
     @Default("Dovere") String category,
     @Default(3) int difficulty,
     @Default("COMPLETED") String status,
+    @Default("briefcase") String icon,
+    @Default([]) List<Map<String, dynamic>> subTasks,
+    @Default(false) bool isRecurring,
   }) = _ActionCreate;
 
   factory ActionCreate.fromJson(Map<String, dynamic> json) => _$ActionCreateFromJson(json);

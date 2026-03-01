@@ -15,6 +15,7 @@ class ActionBase(TunableBaseModel):
     category: Optional[str] = None
     difficulty: Optional[int] = None
     status: Optional[str] = None
+    icon: Optional[str] = None # Icon slug
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     duration_minutes: Optional[int] = None
@@ -51,6 +52,7 @@ class ActionCreate(ActionBase):
     category: str = "Dovere"
     difficulty: int = 3
     status: str = "COMPLETED"
+    icon: str = "briefcase"
 
 class ActionUpdate(ActionBase):
     pass

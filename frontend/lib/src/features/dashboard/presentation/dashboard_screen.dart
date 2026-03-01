@@ -29,6 +29,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _pageController = PageController(initialPage: initialPage);
   }
 
+  void _syncPageController() {
+    if (!_pageController.hasClients) return;
+    
+    final categories = ref.read(availableCategoriesProvider);
+    if (categories.isEmpty) return;
+    
+    final currentCatIndex = ref.read(currentCategoryProvider);
+    final currentPage = _pageController.page?.round() ?? 0;
+    final actualIndexOnPage = currentPage % categories.length;
+    
+    if (actualIndexOnPage != currentCatIndex) {
+      // We are out of sync due to categories list change.
+      // We need to find the closest page that matches currentCatIndex
+      final targetPage = currentPage + (currentCatIndex - actualIndexOnPage);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(targetPage);
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -40,6 +62,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final theme = Theme.of(context);
     final categories = ref.watch(availableCategoriesProvider);
     final currentCatIndex = ref.watch(currentCategoryProvider);
+
+    // Sync if needed after build
+    if (categories.isNotEmpty) {
+      _syncPageController();
+    }
 
     if (categories.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -242,14 +269,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             onTaskTap: (task) => ref.read(taskListProvider.notifier).toggleCompletion(task.id),
                             onTaskLongPress: (task) => _showTaskDetail(context, ref, task),
                           ),
-                          const SizedBox(height: 40),
+                          const ActiveTaskBar(),
+                          const SizedBox(height: 80),
                         ],
                       ),
                     );
                   },
                 ),
               ),
-              const ActiveTaskBar(),
             ],
           ),
         ),
@@ -370,151 +397,179 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           padding: EdgeInsets.only(
             left: 24,
             right: 24,
             top: 24,
             bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 0.5),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Icon(task.icon, size: 48, color: _getCategoryColor(task.category)),
-              const SizedBox(height: 16),
-              Text(
-                task.title.toUpperCase(),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "CATEGORIA: ${task.category.toUpperCase()}",
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(color: AppColors.grey),
-              ),
-              const SizedBox(height: 24),
-              
-              // Stats
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildStatChip(context, "Fatica", task.difficulty.toString(), Icons.fitness_center),
-                  const SizedBox(width: 12),
-                  _buildStatChip(context, "Soddisfazione", task.satisfaction.toString(), Icons.star),
-                ],
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Recurring Toggle
-              SwitchListTile(
-                title: const Text("TASK RICORRENTE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54)),
-                subtitle: const Text("Si resetta automaticamente ogni giorno", style: TextStyle(fontSize: 10, color: Colors.white24)),
-                value: task.isRecurring,
-                activeColor: AppColors.energia,
-                onChanged: (val) {
-                  ref.read(taskListProvider.notifier).toggleRecurring(task.id);
-                  setModalState(() {
-                    task = task.copyWith(isRecurring: val);
-                  });
-                },
-              ),
-              
-              const SizedBox(height: 12),
-              
-              // Sub-tasks Section
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "SUB-TASK / CHECKLIST",
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.white54,
-                    letterSpacing: 1.2,
+                Icon(task.icon, size: 48, color: _getCategoryColor(task.category)),
+                const SizedBox(height: 16),
+                Text(
+                  task.title.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              
-              ...task.subTasks.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final sub = entry.value;
-                final isDone = sub['done'] as bool? ?? false;
+                const SizedBox(height: 8),
+                Text(
+                  "CATEGORIA: ${task.category.toUpperCase()}",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: AppColors.grey),
+                ),
+                const SizedBox(height: 24),
                 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
+                // Stats
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildStatChip(context, "Fatica", task.difficulty.toString(), Icons.fitness_center),
+                    const SizedBox(width: 12),
+                    _buildStatChip(context, "Soddisfazione", task.satisfaction.toString(), Icons.star),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Recurring Toggle
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("TASK RICORRENTE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54)),
+                  subtitle: const Text("Si resetta automaticamente ogni giorno", style: TextStyle(fontSize: 10, color: Colors.white24)),
+                  value: task.isRecurring,
+                  activeColor: AppColors.energia,
+                  onChanged: (val) {
+                    ref.read(taskListProvider.notifier).toggleRecurring(task.id);
+                    setModalState(() {
+                      task = task.copyWith(isRecurring: val);
+                    });
+                  },
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Sub-tasks Section
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "SUB-TASK / CHECKLIST",
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Colors.white54,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Sub-tasks list
+                ...task.subTasks.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final sub = entry.value;
+                  final isDone = sub['done'] as bool? ?? false;
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: Checkbox(
+                            value: isDone,
+                            activeColor: _getCategoryColor(task.category),
+                            onChanged: (val) {
+                              final newList = List<Map<String, dynamic>>.from(task.subTasks);
+                              newList[idx] = {...newList[idx], 'done': val};
+                              ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                              setModalState(() {
+                                task = task.copyWith(subTasks: newList);
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            sub['title'] as String? ?? "",
+                            style: TextStyle(
+                              fontSize: 14,
+                              decoration: isDone ? TextDecoration.lineThrough : null,
+                              color: isDone ? Colors.white38 : Colors.white,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16, color: Colors.white24),
+                          onPressed: () {
+                            final newList = List<Map<String, dynamic>>.from(task.subTasks);
+                            newList.removeAt(idx);
+                            ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                            setModalState(() {
+                              task = task.copyWith(subTasks: newList);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                
+                // Add Sub-task field
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
                     children: [
-                      Checkbox(
-                        value: isDone,
-                        activeColor: _getCategoryColor(task.category),
-                        onChanged: (val) {
-                          final newList = List<Map<String, dynamic>>.from(task.subTasks);
-                          newList[idx] = {...newList[idx], 'done': val};
-                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
-                          // We need to update local task state to reflect in UI immediately
-                          setModalState(() {
-                            task = task.copyWith(subTasks: newList);
-                          });
-                        },
-                      ),
                       Expanded(
-                        child: Text(
-                          sub['title'] as String? ?? "",
-                          style: TextStyle(
-                            decoration: isDone ? TextDecoration.lineThrough : null,
-                            color: isDone ? Colors.white38 : Colors.white,
+                        child: TextField(
+                          controller: subTaskController,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: const InputDecoration(
+                            hintText: "Aggiungi elemento...",
+                            hintStyle: TextStyle(color: Colors.white24, fontSize: 14),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
                           ),
+                          onSubmitted: (val) {
+                            if (val.trim().isNotEmpty) {
+                              final newList = [...task.subTasks, {'title': val.trim(), 'done': false}];
+                              ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                              setModalState(() {
+                                task = task.copyWith(subTasks: newList);
+                                subTaskController.clear();
+                              });
+                            }
+                          },
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, size: 16, color: Colors.white24),
+                        icon: const Icon(Icons.add_circle_outline, color: AppColors.energia),
                         onPressed: () {
-                          final newList = List<Map<String, dynamic>>.from(task.subTasks);
-                          newList.removeAt(idx);
-                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
-                          setModalState(() {
-                            task = task.copyWith(subTasks: newList);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              
-              // Add Sub-task field
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: subTaskController,
-                        decoration: const InputDecoration(
-                          hintText: "Aggiungi elemento...",
-                          hintStyle: TextStyle(color: Colors.white24, fontSize: 14),
-                          border: InputBorder.none,
-                        ),
-                        onSubmitted: (val) {
-                          if (val.trim().isNotEmpty) {
-                            final newList = [...task.subTasks, {'title': val.trim(), 'done': false}];
+                          if (subTaskController.text.trim().isNotEmpty) {
+                            final newList = [...task.subTasks, {'title': subTaskController.text.trim(), 'done': false}];
                             ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
                             setModalState(() {
                               task = task.copyWith(subTasks: newList);
@@ -523,37 +578,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           }
                         },
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: AppColors.energia),
-                      onPressed: () {
-                        if (subTaskController.text.trim().isNotEmpty) {
-                          final newList = [...task.subTasks, {'title': subTaskController.text.trim(), 'done': false}];
-                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
-                          setModalState(() {
-                            task = task.copyWith(subTasks: newList);
-                            subTaskController.clear();
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              // Delete Button
-              TextButton.icon(
-                onPressed: () async {
-                  await ref.read(taskListProvider.notifier).removeTask(task.id);
-                  if (context.mounted) Navigator.pop(context);
-                },
-                icon: const Icon(Icons.delete_outline, color: AppColors.passione),
-                label: const Text("ELIMINA TASK", style: TextStyle(color: AppColors.passione)),
-              ),
-              const SizedBox(height: 16),
-            ],
+                
+                const SizedBox(height: 24),
+                
+                // Delete Button
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await ref.read(taskListProvider.notifier).removeTask(task.id);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.delete_outline, color: AppColors.passione),
+                    label: const Text("ELIMINA TASK", style: TextStyle(color: AppColors.passione, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),

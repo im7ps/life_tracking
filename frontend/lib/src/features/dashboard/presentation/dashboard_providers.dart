@@ -209,6 +209,8 @@ class TaskList extends _$TaskList {
               'fulfillment_score': action.fulfillmentScore,
               'status': action.status,
               'duration_minutes': action.durationMinutes,
+              'sub_tasks': action.subTasks,
+              'is_recurring': action.isRecurring,
             }));
             changed = true;
           } else {
@@ -399,16 +401,39 @@ class TaskList extends _$TaskList {
 
   Future<void> addTasks(List<TaskUIModel> newTasks) async {
     final currentTasks = state.valueOrNull ?? [];
-    final tasksWithIds = newTasks
-        .map(
-          (t) => t.id.isEmpty
-              ? t.copyWith(id: DateTime.now().microsecondsSinceEpoch.toString())
-              : t,
-        )
-        .toList();
+    final List<TaskUIModel> updatedList = List.from(currentTasks);
+    bool changed = false;
 
-    final newState = [...currentTasks, ...tasksWithIds];
-    await _save(newState);
+    for (var nt in newTasks) {
+      // Prevent duplicates by title (case insensitive)
+      final alreadyExists = updatedList.any(
+        (t) => t.title.toLowerCase() == nt.title.toLowerCase(),
+      );
+
+      if (alreadyExists) {
+        debugPrint(
+          "DEBUG: TaskList.addTasks - Task '${nt.title}' already exists in Dashboard. Skipping.",
+        );
+        continue;
+      }
+
+      updatedList.add(
+        nt.copyWith(
+          id: nt.id.isEmpty
+              ? DateTime.now().microsecondsSinceEpoch.toString()
+              : nt.id,
+          status: 'PENDING',
+          // Deep copy subtasks list
+          subTasks: List<Map<String, dynamic>>.from(nt.subTasks),
+          isRecurring: nt.isRecurring,
+        ),
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      await _save(updatedList);
+    }
   }
 
   Future<void> updateTask(TaskUIModel updatedTask) async {

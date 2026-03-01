@@ -25,7 +25,7 @@ final actionListProvider =
 // ignore: unused_element
 typedef ActionListRef =
     AutoDisposeFutureProviderRef<List<domain_action.Action>>;
-String _$portfolioHash() => r'1cdf700a719ea1d9b5895f8f22749ba328dc2332';
+String _$portfolioHash() => r'9893deb178ff9aefc75530926e8486b474ff7b5f';
 
 /// See also [Portfolio].
 @ProviderFor(Portfolio)
@@ -42,7 +42,7 @@ final portfolioProvider =
 
 typedef _$Portfolio = AutoDisposeAsyncNotifier<List<TaskUIModel>>;
 String _$actionCreateControllerHash() =>
-    r'3f43c12ba560eeec074027f0e893762c0102ab28';
+    r'3f701ed764ce892455d3e6e364e30634e29f3a3e';
 
 /// See also [ActionCreateController].
 @ProviderFor(ActionCreateController)

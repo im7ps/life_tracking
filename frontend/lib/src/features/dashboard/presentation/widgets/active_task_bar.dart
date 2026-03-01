@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../dashboard_providers.dart';
 
 class ActiveTaskBar extends ConsumerWidget {
@@ -17,8 +18,6 @@ class ActiveTaskBar extends ConsumerWidget {
 
     return tasksAsync.maybeWhen(
       data: (tasks) {
-        // Filter: IN_PROGRESS status tasks
-        // Logic: if in 'general' show all, else show only tasks of that category
         final activeTasks = tasks.where((t) => t.status == 'IN_PROGRESS').where(
           (t) {
             if (currentCat.id == 'general') return true;
@@ -28,18 +27,22 @@ class ActiveTaskBar extends ConsumerWidget {
 
         if (activeTasks.isEmpty) return const SizedBox.shrink();
 
-        return Container(
-          padding: const EdgeInsets.only(bottom: 8),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.4,
-          ),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemCount: activeTasks.length,
-            itemBuilder: (context, index) =>
-                _ActiveTaskItem(task: activeTasks[index]),
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Text(
+                "IN CORSO",
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.grey.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            ...activeTasks.map((task) => _ActiveTaskItem(task: task)),
+          ],
         );
       },
       orElse: () => const SizedBox.shrink(),
@@ -54,92 +57,79 @@ class _ActiveTaskItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: task.color.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: task.color.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: task.color.withValues(alpha: 0.2)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(task.icon, color: Colors.white, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  _ActiveTimerText(task: task),
-                ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                color: task.color,
               ),
-            ),
-
-            // Action Buttons with Spacing
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Pause/Play Button
-                _ActionButton(
-                  icon: task.isRunning
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
-                  onTap: () =>
-                      ref.read(taskListProvider.notifier).toggleTimer(task.id),
+              const SizedBox(width: 12),
+              Icon(task.icon, color: task.color.withValues(alpha: 0.8), size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      _ActiveTimerText(task: task),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 16),
-                // Complete Button
-                _ActionButton(
-                  icon: Icons.check_rounded,
-                  onTap: () =>
-                      ref.read(taskListProvider.notifier).cycleStatus(task.id),
-                ),
-              ],
-            ),
-          ],
+              ),
+              // Controls
+              _CompactActionButton(
+                icon: task.isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: task.color,
+                onTap: () => ref.read(taskListProvider.notifier).toggleTimer(task.id),
+              ),
+              _CompactActionButton(
+                icon: Icons.check_rounded,
+                color: AppColors.energia,
+                onTap: () => ref.read(taskListProvider.notifier).cycleStatus(task.id),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
+class _CompactActionButton extends StatelessWidget {
   final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
-  const _ActionButton({required this.icon, required this.onTap});
+  const _CompactActionButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.15),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-      ),
+    return IconButton(
+      icon: Icon(icon, color: color, size: 22),
+      onPressed: onTap,
+      visualDensity: VisualDensity.compact,
     );
   }
 }

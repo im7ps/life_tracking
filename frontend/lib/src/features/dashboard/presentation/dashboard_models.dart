@@ -50,38 +50,59 @@ class TaskUIModel with _$TaskUIModel {
   factory TaskUIModel.fromActionJson(Map<String, dynamic> json) {
     final category = json['category'] as String? ?? 'Dovere';
     final status = json['status'] as String? ?? 'COMPLETED';
+    final iconSlug = json['icon'] as String?;
 
     IconData icon;
     Color color;
 
+    // 1. Determine Color by category
     switch (category.toLowerCase()) {
       case 'passione':
-        icon = FontAwesomeIcons.guitar;
         color = Colors.green;
         break;
       case 'energia':
-        icon = FontAwesomeIcons.bolt;
         color = Colors.orange;
         break;
       case 'relazioni':
-        icon = FontAwesomeIcons.peopleGroup;
         color = Colors.blue;
         break;
       case 'anima':
-        icon = FontAwesomeIcons.heart;
         color = Colors.pink;
         break;
       case 'dovere':
       default:
-        icon = FontAwesomeIcons.briefcase;
         color = Colors.red;
+    }
+
+    // 2. Determine Icon (Database slug takes precedence, otherwise fallback to category default)
+    if (iconSlug != null) {
+      switch (iconSlug.toLowerCase()) {
+        case 'guitar': icon = FontAwesomeIcons.guitar; break;
+        case 'dumbbell': icon = FontAwesomeIcons.dumbbell; break;
+        case 'book': icon = FontAwesomeIcons.book; break;
+        case 'phone': icon = FontAwesomeIcons.phone; break;
+        case 'laptop-code': icon = FontAwesomeIcons.laptopCode; break;
+        case 'heart': icon = FontAwesomeIcons.heart; break;
+        case 'feather': icon = FontAwesomeIcons.featherPointed; break;
+        case 'lightbulb': icon = FontAwesomeIcons.lightbulb; break;
+        case 'seedling': icon = FontAwesomeIcons.seedling; break;
+        case 'circle': icon = FontAwesomeIcons.circle; break;
+        case 'briefcase': icon = FontAwesomeIcons.briefcase; break;
+        case 'bolt': icon = FontAwesomeIcons.bolt; break;
+        case 'people-group': icon = FontAwesomeIcons.peopleGroup; break;
+        default:
+          // Try to map category default icons if slug is unknown
+          icon = _getDefaultIconForCategory(category);
+      }
+    } else {
+      icon = _getDefaultIconForCategory(category);
     }
 
     return TaskUIModel(
       id: json['id'] as String,
       title: json['description'] as String? ?? 'Senza Titolo',
       icon: icon,
-      color: color.withValues(alpha: 1.0), // Force opaque to fix corrupted data
+      color: color.withValues(alpha: 1.0),
       difficulty: json['difficulty'] as int? ?? 3,
       satisfaction: json['fulfillment_score'] as int? ?? 3,
       category: category,
@@ -103,6 +124,17 @@ class TaskUIModel with _$TaskUIModel {
           ? DateTime.parse(json['scheduled_date'] as String) 
           : null,
     );
+  }
+
+  static IconData _getDefaultIconForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'passione': return FontAwesomeIcons.guitar;
+      case 'energia': return FontAwesomeIcons.bolt;
+      case 'relazioni': return FontAwesomeIcons.peopleGroup;
+      case 'anima': return FontAwesomeIcons.heart;
+      case 'dovere':
+      default: return FontAwesomeIcons.briefcase;
+    }
   }
 }
 

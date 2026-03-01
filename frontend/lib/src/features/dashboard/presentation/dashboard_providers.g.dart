@@ -520,7 +520,7 @@ final categoryOrderProvider =
     );
 
 typedef _$CategoryOrder = AutoDisposeAsyncNotifier<List<String>>;
-String _$taskListHash() => r'10474630f5ed081cd9dccac762a1edbb3e0babfa';
+String _$taskListHash() => r'e0e0446ff0b4e006b84953b943e56d6c84724e45';
 
 /// See also [TaskList].
 @ProviderFor(TaskList)

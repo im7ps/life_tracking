@@ -33,6 +33,8 @@ class Portfolio extends _$Portfolio {
         'fulfillment_score': action.fulfillmentScore,
         'status': action.status,
         'duration_minutes': action.durationMinutes,
+        'sub_tasks': action.subTasks,
+        'is_recurring': action.isRecurring,
       });
     }).toList();
   }
@@ -70,7 +72,12 @@ class ActionCreateController extends _$ActionCreateController {
     required String dimensionId,
     required int fulfillmentScore,
     String? description,
+    String? category,
+    String? icon,
     DateTime? startTime,
+    int? durationMinutes,
+    bool isRecurring = false,
+    List<Map<String, dynamic>> subTasks = const [],
   }) async {
     final repo = ref.read(actionRepositoryProvider);
     state = const AsyncValue.loading();
@@ -79,7 +86,12 @@ class ActionCreateController extends _$ActionCreateController {
       dimensionId: dimensionId,
       fulfillmentScore: fulfillmentScore,
       description: description,
+      category: category ?? "Dovere",
+      icon: icon ?? "briefcase",
       startTime: startTime,
+      durationMinutes: durationMinutes,
+      isRecurring: isRecurring,
+      subTasks: subTasks,
     );
 
     final result = await AsyncValue.guard(() => repo.createAction(actionIn));
@@ -93,6 +105,7 @@ class ActionCreateController extends _$ActionCreateController {
     return null;
   }
 }
+
 
 // Keep legacy provider for compatibility if needed, but mark as deprecated or empty
 final allTasksProvider = StateProvider<List<TaskUIModel>>((ref) => []);

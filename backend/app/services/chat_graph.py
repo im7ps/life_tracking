@@ -45,9 +45,10 @@ CONTESTO UTENTE:
 
 REGOLE DI COMPORTAMENTO:
 1. Sii estremamente sintetico. Ogni parola deve spingere all'azione.
-2. Se l'utente vuole resettare la giornata o cancellare tutte le task, usa `delete_all_active_actions`.
-3. Se l'utente rifiuta una card grafica, chiedi "Cosa preferiresti modificare?" senza scuse.
-4. Parla sempre in italiano, tono asciutto e diretto.
+2. Se l'utente vuole resettare la giornata o cancellare tutte le task attive, usa `delete_all_active_actions`.
+3. Se l'utente vuole cancellare una task specifica (sia essa in corso, completata o nel portfolio), usa `delete_action`. Non dire mai che non puoi farlo.
+4. Se l'utente rifiuta una card grafica, chiedi "Cosa preferiresti modificare?" senza scuse.
+5. Parla sempre in italiano, tono asciutto e diretto.
 """
 
 
@@ -131,8 +132,8 @@ async def start_new_action(
 
 @tool
 async def delete_action(description_query: str, config: RunnableConfig):
-    """Cancella una task dell'utente basandosi sulla descrizione.
-    Usa questo tool quando l'utente vuole annullare, rimuovere o cancellare un'attività specifica.
+    """Cancella una task dell'utente basandosi sulla descrizione o parole chiave.
+    Usa questo tool quando l'utente vuole annullare, rimuovere o cancellare un'attività specifica (attiva o passata).
     
     Args:
         description_query: Parola chiave o descrizione della task da cancellare.
@@ -144,35 +145,35 @@ async def delete_action(description_query: str, config: RunnableConfig):
         return "ERRORE: Servizio non disponibile."
     
     try:
-        # 1. Recuperiamo le azioni dal portfolio (lista di dict)
+        # 1. Recuperiamo TUTTE le azioni (portfolio e recenti)
         portfolio = await action_service.get_user_portfolio(user_id)
+        recent = await action_service.get_user_actions(user_id, limit=100)
         
-        # 2. Recuperiamo le azioni recenti (lista di oggetti Action)
-        recent = await action_service.get_user_actions(user_id, limit=50)
+        # Normalizziamo la query
+        query = description_query.lower().strip()
         
-        # Cerchiamo un match (case insensitive)
-        target_id = None
-        target_desc = None
+        # Cerchiamo un match
+        matches = []
         
         # Cerca nel portfolio (dict)
         for a in portfolio:
-            desc = a.get('description', '')
-            if description_query.lower() in desc.lower():
-                target_id = a.get('id')
-                target_desc = desc
-                break
+            desc = a.get('description', '').lower()
+            if query in desc or any(word in desc for word in query.split() if len(word) > 3):
+                matches.append((a.get('id'), a.get('description')))
         
-        # Se non trovato, cerca nelle recenti (oggetti)
-        if not target_id:
-            for a in recent:
-                desc = a.description or ""
-                if description_query.lower() in desc.lower():
-                    target_id = a.id
-                    target_desc = desc
-                    break
+        # Cerca nelle recenti (oggetti)
+        for a in recent:
+            desc = (a.description or "").lower()
+            if query in desc or any(word in desc for word in query.split() if len(word) > 3):
+                # Evita duplicati se l'ID è già presente
+                if not any(m[0] == a.id for m in matches):
+                    matches.append((a.id, a.description))
         
-        if not target_id:
+        if not matches:
             return f"ERRORE: Non ho trovato nessuna attività che corrisponde a '{description_query}'."
+            
+        # Se c'è più di un match, prendiamo il primo (di solito il più rilevante/recente)
+        target_id, target_desc = matches[0]
             
         success = await action_service.delete_action(user_id, target_id)
         if success:
