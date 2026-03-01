@@ -73,21 +73,21 @@ class ChatService:
                 # Yield only tokens from the model stream
                 if event["event"] == "on_chat_model_stream":
                     chunk = event["data"]["chunk"]
-                    if hasattr(chunk, "content") and chunk.content:
-                        content = chunk.content
+                    content = getattr(chunk, "content", None)
                     
-                    # Ensure content is a string and not empty to prevent UI glitches
-                    if isinstance(content, str) and content.strip():
-                        yield content
-                    elif isinstance(content, list):
-                        # Handle list of content blocks if necessary
-                        for part in content:
-                            if isinstance(part, dict) and part.get("type") == "text":
-                                text = part.get("text", "")
-                                if text.strip():
-                                    yield text
-                            elif isinstance(part, str) and part.strip():
-                                yield part
+                    if content:
+                        # Ensure content is a string and not empty to prevent UI glitches
+                        if isinstance(content, str) and content.strip():
+                            yield content
+                        elif isinstance(content, list):
+                            # Handle list of content blocks if necessary
+                            for part in content:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    text = part.get("text", "")
+                                    if text.strip():
+                                        yield text
+                                elif isinstance(part, str) and part.strip():
+                                    yield part
             
             state = await self.app_graph.aget_state(config)
             logger.info(f"END stream_chat. State next: {state.next}")
@@ -131,8 +131,8 @@ class ChatService:
             ):
                 if event["event"] == "on_chat_model_stream":
                     chunk = event["data"]["chunk"]
-                    if hasattr(chunk, "content") and chunk.content:
-                        content = chunk.content
+                    content = getattr(chunk, "content", None)
+                    if content:
                         if isinstance(content, str) and content.strip():
                             yield content
                         elif isinstance(content, list):
