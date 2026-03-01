@@ -15,7 +15,7 @@ part 'chat_controller.g.dart';
 @riverpod
 class ChatController extends _$ChatController {
   SpeechToText get _speech => ref.read(speechToTextProvider);
-  
+
   @override
   ChatState build() {
     // Generate a fresh session ID for every controller build (new chat session)
@@ -28,13 +28,15 @@ class ChatController extends _$ChatController {
   static const _confirmTag = "||INTERRUPT||";
 
   Future<bool> toggleListening() async {
-    final hasPermission = await ref.read(permissionServiceProvider).requestMicrophonePermission();
+    final hasPermission = await ref
+        .read(permissionServiceProvider)
+        .requestMicrophonePermission();
     if (!hasPermission) return false;
 
     if (_isListening) {
       await _speech.stop();
       _isListening = false;
-      state = state; 
+      state = state;
       return false;
     }
 
@@ -42,7 +44,7 @@ class ChatController extends _$ChatController {
       onStatus: (status) {
         if (status == 'done' || status == 'notListening') {
           _isListening = false;
-          state = state; 
+          state = state;
         }
       },
       onError: (errorNotification) {
@@ -62,7 +64,7 @@ class ChatController extends _$ChatController {
         },
         listenFor: const Duration(seconds: 60),
         pauseFor: const Duration(seconds: 10), // Più tempo per pensare/parlare
-        listenMode: ListenMode.dictation,
+        listenOptions: SpeechListenOptions(listenMode: ListenMode.dictation),
       );
     }
     return available;
@@ -70,24 +72,22 @@ class ChatController extends _$ChatController {
 
   void addUserMessage(String text) {
     if (text.isEmpty) return;
-    
+
     final message = ChatMessage(
       id: const Uuid().v4(),
       text: text,
       isUser: true,
       timestamp: DateTime.now(),
     );
-    
-    state = state.copyWith(
-      messages: [...state.messages, message],
-    );
-    
+
+    state = state.copyWith(messages: [...state.messages, message]);
+
     _startAIStreaming(text);
   }
 
   Future<void> _startAIStreaming(String userText) async {
     final repository = ref.read(chatRepositoryProvider);
-    
+
     final responseId = const Uuid().v4();
     final initialResponse = ChatMessage(
       id: responseId,
@@ -95,15 +95,16 @@ class ChatController extends _$ChatController {
       isUser: false,
       timestamp: DateTime.now(),
     );
-    
-    state = state.copyWith(
-      messages: [...state.messages, initialResponse],
-    );
+
+    state = state.copyWith(messages: [...state.messages, initialResponse]);
 
     StringBuffer fullText = StringBuffer();
-    
+
     try {
-      await for (final chunk in repository.streamChat(userText, state.sessionId)) {
+      await for (final chunk in repository.streamChat(
+        userText,
+        state.sessionId,
+      )) {
         fullText.write(chunk);
 
         String displayText = fullText.toString();
@@ -139,14 +140,13 @@ class ChatController extends _$ChatController {
               if (msg.id == responseId)
                 msg.copyWith(text: displayText)
               else
-                msg
+                msg,
           ],
         );
       }
-      
+
       ref.read(taskListProvider.notifier).syncWithBackend();
       ref.invalidate(portfolioProvider);
-      
     } catch (e) {
       state = state.copyWith(
         messages: [
@@ -154,7 +154,7 @@ class ChatController extends _$ChatController {
             if (msg.id == responseId)
               msg.copyWith(text: "Errore nella comunicazione con l'AI: $e")
             else
-              msg
+              msg,
         ],
       );
     }
@@ -185,9 +185,12 @@ class ChatController extends _$ChatController {
     final fullText = StringBuffer();
 
     try {
-      await for (final chunk in repository.confirmTool(confirmed, state.sessionId)) {
+      await for (final chunk in repository.confirmTool(
+        confirmed,
+        state.sessionId,
+      )) {
         fullText.write(chunk);
-        
+
         String displayText = fullText.toString();
         bool waiting = false;
         Map<String, dynamic>? toolArgs;
@@ -220,14 +223,13 @@ class ChatController extends _$ChatController {
               if (msg.id == responseId)
                 msg.copyWith(text: displayText)
               else
-                msg
+                msg,
           ],
         );
       }
-      
+
       ref.read(taskListProvider.notifier).syncWithBackend();
       ref.invalidate(portfolioProvider);
-      
     } catch (e) {
       state = state.copyWith(
         messages: [
@@ -235,7 +237,7 @@ class ChatController extends _$ChatController {
             if (msg.id == responseId)
               msg.copyWith(text: "Errore nella comunicazione con l'AI: $e")
             else
-              msg
+              msg,
         ],
       );
     }
