@@ -69,13 +69,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final theme = Theme.of(context);
 
     ref.listen<ChatState>(chatControllerProvider, (previous, next) {
-      if (next.messages.length > (previous?.messages.length ?? 0)) {
-        // Scroll to bottom when a new message arrives (user or AI)
+      final wasAtBottom = !_scrollController.hasClients ||
+          _scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 100;
+
+      final messageCountIncreased =
+          next.messages.length > (previous?.messages.length ?? 0);
+      
+      final lastMessageChanged = previous != null && 
+          previous.messages.isNotEmpty && 
+          next.messages.isNotEmpty &&
+          previous.messages.last.text != next.messages.last.text;
+
+      if (messageCountIncreased || (wasAtBottom && lastMessageChanged)) {
+        // Scroll to bottom when a new message arrives or last message is streaming
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(
               _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
             );
           }
