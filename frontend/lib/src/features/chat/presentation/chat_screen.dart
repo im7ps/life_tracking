@@ -16,51 +16,51 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
-  double? _firstUnreadOffset;
+  // double? _firstUnreadOffset;
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _scrollController.addListener(_onScroll);
+  // }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _scrollController.removeListener(_onScroll);
+  //   _scrollController.dispose();
+  //   super.dispose();
+  // }
 
-  void _onScroll() {
-    if (_scrollController.hasClients) {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 50) {
-        setState(() {
-          _firstUnreadOffset = null;
-        });
-      }
-    }
-  }
+  // void _onScroll() {
+  //   if (_scrollController.hasClients) {
+  //     if (_scrollController.position.pixels >=
+  //         _scrollController.position.maxScrollExtent - 50) {
+  //       setState(() {
+  //         _firstUnreadOffset = null;
+  //       });
+  //     }
+  //   }
+  // }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  // void _scrollToBottom() {
+  //   if (_scrollController.hasClients) {
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeOut,
+  //     );
+  //   }
+  // }
 
-  void _scrollToOffset(double offset) {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        offset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  // void _scrollToOffset(double offset) {
+  //   if (_scrollController.hasClients) {
+  //     _scrollController.animateTo(
+  //       offset,
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeOut,
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -70,25 +70,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     ref.listen<ChatState>(chatControllerProvider, (previous, next) {
       if (next.messages.length > (previous?.messages.length ?? 0)) {
-        final lastMessage = next.messages.last;
-
-        if (lastMessage.isUser) {
-          _firstUnreadOffset = null;
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => _scrollToBottom(),
-          );
-        } else {
-          if (_firstUnreadOffset == null) {
-            final oldMaxScroll = _scrollController.hasClients
-                ? _scrollController.position.maxScrollExtent
-                : 0.0;
-
-            _firstUnreadOffset = oldMaxScroll;
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => _scrollToOffset(oldMaxScroll),
+        // Scroll to bottom when a new message arrives (user or AI)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
             );
           }
-        }
+        });
       }
     });
 
@@ -142,7 +133,7 @@ class _ChatBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = message.isUser;
     if (message.text.trim().isEmpty && !isUser) return const SizedBox.shrink();
-    
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -241,7 +232,7 @@ class _ChatInputSectionState extends ConsumerState<_ChatInputSection> {
             ),
             onPressed: () async {
               await ref.read(chatControllerProvider.notifier).toggleListening();
-              setState(() {}); 
+              setState(() {});
             },
           ),
           const SizedBox(width: 8),
@@ -274,19 +265,22 @@ class _ChatInputSectionState extends ConsumerState<_ChatInputSection> {
     bool isDelete = toolName == "delete_action";
     String title = isDelete ? "VUOI CANCELLARE?" : "CONFERMA IL TUO IMPEGNO";
     String description = "";
-    
+
     if (isDelete) {
       description = args['description_query'] ?? 'Attività';
     } else {
       description = args['description'] ?? 'Nuova attività';
     }
-    
+
     final duration = args['duration_minutes'];
     final dimensionId = args['dimension_id'] ?? 'dovere';
+    final List<dynamic>? subTasks = args['sub_tasks'] is List
+        ? args['sub_tasks']
+        : null;
 
     IconData icon;
     Color color;
-    
+
     if (isDelete) {
       icon = Icons.delete_forever_rounded;
       color = Colors.redAccent;
@@ -321,7 +315,11 @@ class _ChatInputSectionState extends ConsumerState<_ChatInputSection> {
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, -5))
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
         ],
       ),
       child: Column(
@@ -369,30 +367,68 @@ class _ChatInputSectionState extends ConsumerState<_ChatInputSection> {
                         Row(
                           children: [
                             if (duration != null) ...[
-                              const Icon(Icons.timer_outlined,
-                                  size: 14, color: AppColors.grey),
+                              const Icon(
+                                Icons.timer_outlined,
+                                size: 14,
+                                color: AppColors.grey,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 "$duration min",
-                                style: theme.textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.grey),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.grey,
+                                ),
                               ),
                               const SizedBox(width: 12),
                             ],
-                            const Icon(Icons.category_outlined,
-                                size: 14, color: AppColors.grey),
+                            const Icon(
+                              Icons.category_outlined,
+                              size: 14,
+                              color: AppColors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               dimensionId.toString().toUpperCase(),
-                              style: theme.textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.grey),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.grey,
+                              ),
                             ),
                           ],
                         ),
+                      if (subTasks != null && subTasks.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        ...subTasks.map(
+                          (st) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.subdirectory_arrow_right_rounded,
+                                  size: 14,
+                                  color: color.withValues(alpha: 0.5),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    st['title']?.toString() ?? "",
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: AppColors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                       if (isDelete)
                         Text(
                           "Questa azione verrà rimossa definitivamente.",
-                          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.grey),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.grey,
+                          ),
                         ),
                     ],
                   ),

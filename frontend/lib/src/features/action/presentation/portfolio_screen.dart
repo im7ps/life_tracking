@@ -6,7 +6,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../dashboard/presentation/dashboard_providers.dart';
 import 'action_providers.dart';
 import 'widgets/portfolio_card.dart';
-import '../../dashboard/presentation/dashboard_models.dart';
 
 class PortfolioScreen extends ConsumerStatefulWidget {
   const PortfolioScreen({super.key});
@@ -50,8 +49,17 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         child: Column(
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: Center(child: Text("MENU", style: theme.textTheme.titleLarge?.copyWith(color: Colors.white))),
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+              child: Center(
+                child: Text(
+                  "MENU",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.settings_outlined),
@@ -86,7 +94,13 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         data: (allTasks) {
           final filteredTasks = _selectedFilter == 'Tutti'
               ? allTasks
-              : allTasks.where((t) => t.category.toLowerCase() == _selectedFilter.toLowerCase()).toList();
+              : allTasks
+                    .where(
+                      (t) =>
+                          t.category.toLowerCase() ==
+                          _selectedFilter.toLowerCase(),
+                    )
+                    .toList();
 
           return Column(
             children: [
@@ -94,7 +108,10 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
               SizedBox(
                 height: 60,
                 child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   scrollDirection: Axis.horizontal,
                   itemCount: _filters.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -106,12 +123,19 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     return GestureDetector(
                       onTap: () => setState(() => _selectedFilter = filter),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected ? filterColor.withValues(alpha: 0.2) : theme.cardTheme.color,
+                          color: isSelected
+                              ? filterColor.withValues(alpha: 0.2)
+                              : theme.cardTheme.color,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? filterColor : Colors.transparent,
+                            color: isSelected
+                                ? filterColor
+                                : Colors.transparent,
                             width: 1.5,
                           ),
                         ),
@@ -132,29 +156,34 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
               ),
               // Task List
               Expanded(
-                child: filteredTasks.isEmpty 
-                  ? Center(child: Text("Nessuna attività trovata.", style: TextStyle(color: AppColors.grey)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(24),
-                      itemCount: filteredTasks.length,
-                      itemBuilder: (context, index) {
-                        final t = filteredTasks[index];
-                        return PortfolioCard(
-                          title: t.title,
-                          category: t.category,
-                          completionCount: 0,
-                          avgSatisfaction: t.satisfaction.toDouble(),
-                          icon: t.icon,
-                          onTap: () => _showTaskDetail(t, ref),
-                          onScegli: () {
-                            ref.read(taskListProvider.notifier).addTasks([t]);
-                            context.go('/');
-                          },
-                        );
-                      },
-                    ),
+                child: filteredTasks.isEmpty
+                    ? Center(
+                        child: Text(
+                          "Nessuna attività trovata.",
+                          style: TextStyle(color: AppColors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(24),
+                        itemCount: filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final t = filteredTasks[index];
+                          return PortfolioCard(
+                            title: t.title,
+                            category: t.category,
+                            completionCount: t.completionCount,
+                            avgSatisfaction: t.satisfaction.toDouble(),
+                            icon: t.icon,
+                            onTap: () => _showTaskDetail(t, ref),
+                            onScegli: () {
+                              ref.read(taskListProvider.notifier).addTasks([t]);
+                              context.go('/');
+                            },
+                          );
+                        },
+                      ),
               ),
-              
+
               // Add Task Button at the Bottom
               Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -168,12 +197,17 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _showCreateTaskModal(),
                     icon: const Icon(Icons.add_rounded),
-                    label: const Text("CREA NUOVA MISSIONE", style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      "CREA NUOVA MISSIONE",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -182,7 +216,8 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text("Errore nel caricamento: $err")),
+        error: (err, stack) =>
+            Center(child: Text("Errore nel caricamento: $err")),
       ),
     );
   }
@@ -202,14 +237,25 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
           children: [
             Icon(task.icon, size: 64, color: _getCategoryColor(task.category)),
             const SizedBox(height: 16),
-            Text(task.title.toUpperCase(), style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              task.title.toUpperCase(),
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildStatChip("Fatica", task.difficulty.toString(), Icons.fitness_center),
+                _buildStatChip(
+                  "Fatica",
+                  task.difficulty.toString(),
+                  Icons.fitness_center,
+                ),
                 const SizedBox(width: 12),
-                _buildStatChip("Soddisfazione", task.satisfaction.toString(), Icons.star),
+                _buildStatChip(
+                  "Soddisfazione",
+                  task.satisfaction.toString(),
+                  Icons.star,
+                ),
               ],
             ),
             const SizedBox(height: 32),
@@ -224,9 +270,14 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.dovere,
                   foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: const Text("AGGIUNGI ALLA GIORNATA", style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  "AGGIUNGI ALLA GIORNATA",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -235,7 +286,10 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                 ref.read(portfolioProvider.notifier).removeTask(task.id);
                 Navigator.pop(context);
               },
-              child: const Text("Elimina dal Portfolio", style: TextStyle(color: AppColors.passione)),
+              child: const Text(
+                "Elimina dal Portfolio",
+                style: TextStyle(color: AppColors.passione),
+              ),
             ),
           ],
         ),
@@ -255,7 +309,10 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         children: [
           Icon(icon, size: 16, color: AppColors.grey),
           const SizedBox(width: 8),
-          Text("$label: $value", style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            "$label: $value",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -275,7 +332,12 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateModal) => Container(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
           decoration: BoxDecoration(
             color: theme.cardTheme.color,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -285,7 +347,12 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text("NUOVA MISSIONE", style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  "NUOVA MISSIONE",
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 TextField(
                   style: theme.textTheme.bodyLarge,
@@ -294,12 +361,18 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     labelStyle: const TextStyle(color: AppColors.grey),
                     filled: true,
                     fillColor: theme.scaffoldBackgroundColor,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   onChanged: (val) => title = val,
                 ),
                 const SizedBox(height: 24),
-                Align(alignment: Alignment.centerLeft, child: Text("ICONA", style: theme.textTheme.labelLarge)),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("ICONA", style: theme.textTheme.labelLarge),
+                ),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 64,
@@ -315,40 +388,81 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                           width: 60,
                           margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.dovere : theme.scaffoldBackgroundColor,
+                            color: isSelected
+                                ? AppColors.dovere
+                                : theme.scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Center(child: Icon(icon, color: isSelected ? AppColors.white : AppColors.grey)),
+                          child: Center(
+                            child: Icon(
+                              icon,
+                              color: isSelected
+                                  ? AppColors.white
+                                  : AppColors.grey,
+                            ),
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
                 const SizedBox(height: 24),
-                Align(alignment: Alignment.centerLeft, child: Text("CATEGORIA", style: theme.textTheme.labelLarge)),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("CATEGORIA", style: theme.textTheme.labelLarge),
+                ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
-                  children: ["Dovere", "Passione", "Energia", "Anima", "Relazioni"].map((cat) {
-                    final isSelected = category == cat;
-                    final catColor = _getCategoryColor(cat);
-                    return GestureDetector(
-                      onTap: () => setStateModal(() => category = cat),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected ? catColor : theme.scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(cat.toUpperCase(), style: TextStyle(color: isSelected ? AppColors.white : AppColors.grey, fontWeight: FontWeight.bold, fontSize: 11)),
-                      ),
-                    );
-                  }).toList(),
+                  children:
+                      [
+                        "Dovere",
+                        "Passione",
+                        "Energia",
+                        "Anima",
+                        "Relazioni",
+                      ].map((cat) {
+                        final isSelected = category == cat;
+                        final catColor = _getCategoryColor(cat);
+                        return GestureDetector(
+                          onTap: () => setStateModal(() => category = cat),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? catColor
+                                  : theme.scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              cat.toUpperCase(),
+                              style: TextStyle(
+                                color: isSelected
+                                    ? AppColors.white
+                                    : AppColors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 32),
-                _buildSlider("FATICA", fatigue, (val) => setStateModal(() => fatigue = val)),
-                _buildSlider("SODDISFAZIONE", satisfaction, (val) => setStateModal(() => satisfaction = val)),
+                _buildSlider(
+                  "FATICA",
+                  fatigue,
+                  (val) => setStateModal(() => fatigue = val),
+                ),
+                _buildSlider(
+                  "SODDISFAZIONE",
+                  satisfaction,
+                  (val) => setStateModal(() => satisfaction = val),
+                ),
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -363,7 +477,9 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                         backgroundColor: Colors.transparent,
                         foregroundColor: AppColors.white,
                         shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       onPressed: () async {
                         if (title.isNotEmpty) {
@@ -376,17 +492,23 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                             'Anima': 'anima',
                             'Relazioni': 'relazioni',
                           };
-                          
-                          await ref.read(actionCreateControllerProvider.notifier).createAction(
-                            description: title,
-                            dimensionId: dimensionMapping[category] ?? 'dovere',
-                            fulfillmentScore: satisfaction.round(),
-                          );
-                          
-                          if (mounted) Navigator.pop(context);
+
+                          await ref
+                              .read(actionCreateControllerProvider.notifier)
+                              .createAction(
+                                description: title,
+                                dimensionId:
+                                    dimensionMapping[category] ?? 'dovere',
+                                fulfillmentScore: satisfaction.round(),
+                              );
+
+                          if (context.mounted) Navigator.pop(context);
                         }
                       },
-                      child: const Text("CREA E AGGIUNGI", style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "CREA E AGGIUNGI",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),
@@ -406,8 +528,20 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: AppColors.grey, fontWeight: FontWeight.bold)),
-            Text(value.round().toString(), style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              value.round().toString(),
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         Slider(
@@ -425,12 +559,18 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'dovere': return AppColors.dovere;
-      case 'passione': return AppColors.passione;
-      case 'energia': return AppColors.energia;
-      case 'anima': return AppColors.anima;
-      case 'relazioni': return AppColors.relazioni;
-      default: return AppColors.neutral;
+      case 'dovere':
+        return AppColors.dovere;
+      case 'passione':
+        return AppColors.passione;
+      case 'energia':
+        return AppColors.energia;
+      case 'anima':
+        return AppColors.anima;
+      case 'relazioni':
+        return AppColors.relazioni;
+      default:
+        return AppColors.neutral;
     }
   }
 }

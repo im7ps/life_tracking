@@ -32,7 +32,14 @@ mixin _$TaskUIModel {
   int? get durationMinutes => throw _privateConstructorUsedError;
   int get difficulty => throw _privateConstructorUsedError;
   int get satisfaction => throw _privateConstructorUsedError;
+  int get completionCount => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
+  bool get isRunning => throw _privateConstructorUsedError;
+  int get totalSeconds => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>> get subTasks => throw _privateConstructorUsedError;
+  bool get isRecurring => throw _privateConstructorUsedError;
+  DateTime? get lastStartedAt => throw _privateConstructorUsedError;
+  DateTime? get scheduledDate => throw _privateConstructorUsedError;
 
   /// Serializes this TaskUIModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -61,7 +68,14 @@ abstract class $TaskUIModelCopyWith<$Res> {
     int? durationMinutes,
     int difficulty,
     int satisfaction,
+    int completionCount,
     String category,
+    bool isRunning,
+    int totalSeconds,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
+    DateTime? lastStartedAt,
+    DateTime? scheduledDate,
   });
 }
 
@@ -89,7 +103,14 @@ class _$TaskUIModelCopyWithImpl<$Res, $Val extends TaskUIModel>
     Object? durationMinutes = freezed,
     Object? difficulty = null,
     Object? satisfaction = null,
+    Object? completionCount = null,
     Object? category = null,
+    Object? isRunning = null,
+    Object? totalSeconds = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
+    Object? lastStartedAt = freezed,
+    Object? scheduledDate = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -129,10 +150,38 @@ class _$TaskUIModelCopyWithImpl<$Res, $Val extends TaskUIModel>
                 ? _value.satisfaction
                 : satisfaction // ignore: cast_nullable_to_non_nullable
                       as int,
+            completionCount: null == completionCount
+                ? _value.completionCount
+                : completionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
             category: null == category
                 ? _value.category
                 : category // ignore: cast_nullable_to_non_nullable
                       as String,
+            isRunning: null == isRunning
+                ? _value.isRunning
+                : isRunning // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            totalSeconds: null == totalSeconds
+                ? _value.totalSeconds
+                : totalSeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
+            subTasks: null == subTasks
+                ? _value.subTasks
+                : subTasks // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
+            isRecurring: null == isRecurring
+                ? _value.isRecurring
+                : isRecurring // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            lastStartedAt: freezed == lastStartedAt
+                ? _value.lastStartedAt
+                : lastStartedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            scheduledDate: freezed == scheduledDate
+                ? _value.scheduledDate
+                : scheduledDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -158,7 +207,14 @@ abstract class _$$TaskUIModelImplCopyWith<$Res>
     int? durationMinutes,
     int difficulty,
     int satisfaction,
+    int completionCount,
     String category,
+    bool isRunning,
+    int totalSeconds,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
+    DateTime? lastStartedAt,
+    DateTime? scheduledDate,
   });
 }
 
@@ -185,7 +241,14 @@ class __$$TaskUIModelImplCopyWithImpl<$Res>
     Object? durationMinutes = freezed,
     Object? difficulty = null,
     Object? satisfaction = null,
+    Object? completionCount = null,
     Object? category = null,
+    Object? isRunning = null,
+    Object? totalSeconds = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
+    Object? lastStartedAt = freezed,
+    Object? scheduledDate = freezed,
   }) {
     return _then(
       _$TaskUIModelImpl(
@@ -225,10 +288,38 @@ class __$$TaskUIModelImplCopyWithImpl<$Res>
             ? _value.satisfaction
             : satisfaction // ignore: cast_nullable_to_non_nullable
                   as int,
+        completionCount: null == completionCount
+            ? _value.completionCount
+            : completionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
         category: null == category
             ? _value.category
             : category // ignore: cast_nullable_to_non_nullable
                   as String,
+        isRunning: null == isRunning
+            ? _value.isRunning
+            : isRunning // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        totalSeconds: null == totalSeconds
+            ? _value.totalSeconds
+            : totalSeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
+        subTasks: null == subTasks
+            ? _value._subTasks
+            : subTasks // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
+        isRecurring: null == isRecurring
+            ? _value.isRecurring
+            : isRecurring // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        lastStartedAt: freezed == lastStartedAt
+            ? _value.lastStartedAt
+            : lastStartedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        scheduledDate: freezed == scheduledDate
+            ? _value.scheduledDate
+            : scheduledDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -247,8 +338,15 @@ class _$TaskUIModelImpl implements _TaskUIModel {
     this.durationMinutes,
     required this.difficulty,
     required this.satisfaction,
+    this.completionCount = 0,
     required this.category,
-  });
+    this.isRunning = false,
+    this.totalSeconds = 0,
+    final List<Map<String, dynamic>> subTasks = const [],
+    this.isRecurring = false,
+    this.lastStartedAt,
+    this.scheduledDate,
+  }) : _subTasks = subTasks;
 
   factory _$TaskUIModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TaskUIModelImplFromJson(json);
@@ -276,11 +374,36 @@ class _$TaskUIModelImpl implements _TaskUIModel {
   @override
   final int satisfaction;
   @override
+  @JsonKey()
+  final int completionCount;
+  @override
   final String category;
+  @override
+  @JsonKey()
+  final bool isRunning;
+  @override
+  @JsonKey()
+  final int totalSeconds;
+  final List<Map<String, dynamic>> _subTasks;
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get subTasks {
+    if (_subTasks is EqualUnmodifiableListView) return _subTasks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subTasks);
+  }
+
+  @override
+  @JsonKey()
+  final bool isRecurring;
+  @override
+  final DateTime? lastStartedAt;
+  @override
+  final DateTime? scheduledDate;
 
   @override
   String toString() {
-    return 'TaskUIModel(id: $id, title: $title, icon: $icon, color: $color, isCompleted: $isCompleted, status: $status, durationMinutes: $durationMinutes, difficulty: $difficulty, satisfaction: $satisfaction, category: $category)';
+    return 'TaskUIModel(id: $id, title: $title, icon: $icon, color: $color, isCompleted: $isCompleted, status: $status, durationMinutes: $durationMinutes, difficulty: $difficulty, satisfaction: $satisfaction, completionCount: $completionCount, category: $category, isRunning: $isRunning, totalSeconds: $totalSeconds, subTasks: $subTasks, isRecurring: $isRecurring, lastStartedAt: $lastStartedAt, scheduledDate: $scheduledDate)';
   }
 
   @override
@@ -301,8 +424,21 @@ class _$TaskUIModelImpl implements _TaskUIModel {
                 other.difficulty == difficulty) &&
             (identical(other.satisfaction, satisfaction) ||
                 other.satisfaction == satisfaction) &&
+            (identical(other.completionCount, completionCount) ||
+                other.completionCount == completionCount) &&
             (identical(other.category, category) ||
-                other.category == category));
+                other.category == category) &&
+            (identical(other.isRunning, isRunning) ||
+                other.isRunning == isRunning) &&
+            (identical(other.totalSeconds, totalSeconds) ||
+                other.totalSeconds == totalSeconds) &&
+            const DeepCollectionEquality().equals(other._subTasks, _subTasks) &&
+            (identical(other.isRecurring, isRecurring) ||
+                other.isRecurring == isRecurring) &&
+            (identical(other.lastStartedAt, lastStartedAt) ||
+                other.lastStartedAt == lastStartedAt) &&
+            (identical(other.scheduledDate, scheduledDate) ||
+                other.scheduledDate == scheduledDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -318,7 +454,14 @@ class _$TaskUIModelImpl implements _TaskUIModel {
     durationMinutes,
     difficulty,
     satisfaction,
+    completionCount,
     category,
+    isRunning,
+    totalSeconds,
+    const DeepCollectionEquality().hash(_subTasks),
+    isRecurring,
+    lastStartedAt,
+    scheduledDate,
   );
 
   /// Create a copy of TaskUIModel
@@ -346,7 +489,14 @@ abstract class _TaskUIModel implements TaskUIModel {
     final int? durationMinutes,
     required final int difficulty,
     required final int satisfaction,
+    final int completionCount,
     required final String category,
+    final bool isRunning,
+    final int totalSeconds,
+    final List<Map<String, dynamic>> subTasks,
+    final bool isRecurring,
+    final DateTime? lastStartedAt,
+    final DateTime? scheduledDate,
   }) = _$TaskUIModelImpl;
 
   factory _TaskUIModel.fromJson(Map<String, dynamic> json) =
@@ -373,7 +523,21 @@ abstract class _TaskUIModel implements TaskUIModel {
   @override
   int get satisfaction;
   @override
+  int get completionCount;
+  @override
   String get category;
+  @override
+  bool get isRunning;
+  @override
+  int get totalSeconds;
+  @override
+  List<Map<String, dynamic>> get subTasks;
+  @override
+  bool get isRecurring;
+  @override
+  DateTime? get lastStartedAt;
+  @override
+  DateTime? get scheduledDate;
 
   /// Create a copy of TaskUIModel
   /// with the given fields replaced by the non-null parameter values.

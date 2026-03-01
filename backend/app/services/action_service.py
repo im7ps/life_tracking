@@ -33,12 +33,21 @@ class ActionService:
     async def get_user_actions(self, user_id: uuid.UUID, skip: int = 0, limit: int = 50) -> List[Action]:
         return await self.repo.get_recent_by_user(user_id, limit=limit, skip=skip)
 
-    async def get_user_portfolio(self, user_id: uuid.UUID) -> List[Action]:
+    async def get_user_portfolio(self, user_id: uuid.UUID) -> List[dict]:
         """
         Retrieves unique actions that the user has successfully completed.
         """
         return await self.repo.get_unique_completed_actions(user_id)
         
+    async def update_action(self, user_id: uuid.UUID, action_id: uuid.UUID, action_in: ActionUpdate) -> Action | None:
+        action = await self.repo.update_for_user(user_id, action_id, action_in)
+        if action:
+            await self.repo.session.commit()
+            # Manually populate dimension if id changed
+            if action_in.dimension_id:
+                action.dimension = await self.dimension_service.get_dimension(action.dimension_id)
+        return action
+
     async def delete_action(self, user_id: uuid.UUID, action_id: uuid.UUID) -> bool:
         success = await self.repo.delete_for_user(user_id, action_id)
         if success:

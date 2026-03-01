@@ -16,7 +16,10 @@ async_engine = create_async_engine(
     echo=False, 
     future=True,
     pool_size=settings.POSTGRES_POOL_SIZE,
-    max_overflow=settings.POSTGRES_MAX_OVERFLOW
+    max_overflow=settings.POSTGRES_MAX_OVERFLOW,
+    pool_recycle=3600,
+    pool_pre_ping=True,
+    pool_use_lifo=True
 )
 
 # La session factory crea nuove sessioni asincrone.

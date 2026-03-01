@@ -25,7 +25,7 @@ final actionListProvider =
 // ignore: unused_element
 typedef ActionListRef =
     AutoDisposeFutureProviderRef<List<domain_action.Action>>;
-String _$portfolioHash() => r'f768de4e0c4484d3843909f22057e85204697d51';
+String _$portfolioHash() => r'1cdf700a719ea1d9b5895f8f22749ba328dc2332';
 
 /// See also [Portfolio].
 @ProviderFor(Portfolio)

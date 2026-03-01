@@ -29,37 +29,85 @@ class ActionRepo(UserOwnedRepo[Action, ActionCreate, ActionUpdate]):
         result = await self.session.execute(statement)
         return result.scalars().all()
 
-    async def get_unique_completed_actions(self, user_id: uuid.UUID) -> List[Action]:
+    async def get_unique_completed_actions(self, user_id: uuid.UUID) -> List[dict]:
         """
-        Returns a list of unique actions (by description) that the user has COMPLETED or are IN_PROGRESS.
-        This represents the user's "Portfolio" and "Active Identity".
+        Returns a list of unique actions with stats (count, avg satisfaction).
         """
         print(f"DEBUG: ActionRepo.get_unique_completed_actions - Fetching for user {user_id}")
         from sqlalchemy import func, or_
         
-        subquery = (
+        # Subquery to get the latest action for each unique description to get current attributes
+        latest_subquery = (
             select(
                 self.model.description,
                 func.max(self.model.start_time).label("max_time")
             )
             .where(self.model.user_id == user_id)
-            .where(or_(self.model.status == "COMPLETED", self.model.status == "IN_PROGRESS"))
             .group_by(self.model.description)
             .subquery()
         )
         
+        # Query to get the stats
+        stats_query = (
+            select(
+                self.model.description,
+                func.count(self.model.id).label("count"),
+                func.avg(self.model.fulfillment_score).label("avg_satisfaction"),
+                func.avg(self.model.difficulty).label("avg_difficulty")
+            )
+            .where(self.model.user_id == user_id)
+            .where(self.model.status == "COMPLETED")
+            .group_by(self.model.description)
+            .subquery()
+        )
+
         statement = (
-            select(self.model)
+            select(
+                self.model,
+                func.coalesce(stats_query.c.count, 0).label("completion_count"),
+                func.coalesce(stats_query.c.avg_satisfaction, self.model.fulfillment_score).label("avg_fulfillment"),
+                func.coalesce(stats_query.c.avg_difficulty, self.model.difficulty).label("avg_difficulty_stat")
+            )
             .join(
-                subquery,
-                (self.model.description == subquery.c.description) & 
-                (self.model.start_time == subquery.c.max_time)
+                latest_subquery,
+                (self.model.description == latest_subquery.c.description) & 
+                (self.model.start_time == latest_subquery.c.max_time)
+            )
+            .outerjoin(
+                stats_query,
+                self.model.description == stats_query.c.description
             )
             .where(self.model.user_id == user_id)
             .options(selectinload(self.model.dimension))
         )
         
         result = await self.session.execute(statement)
-        actions = result.scalars().all()
-        print(f"DEBUG: ActionRepo.get_unique_completed_actions - FOUND {len(actions)} unique actions")
-        return list(actions)
+        rows = result.all()
+        
+        portfolio = []
+        for row in rows:
+            action = row.Action
+            # We build a clean dictionary, ensuring all required fields for ActionRead are present
+            # and explicitly setting 'dimension' to None to avoid Pydantic trying to access the lazy relationship
+            action_data = {
+                "id": action.id,
+                "user_id": action.user_id,
+                "description": action.description,
+                "category": action.category,
+                "difficulty": int(row.avg_difficulty_stat),
+                "fulfillment_score": int(row.avg_fulfillment),
+                "status": action.status,
+                "start_time": action.start_time,
+                "dimension_id": action.dimension_id,
+                "completion_count": row.completion_count,
+                "duration_minutes": action.duration_minutes,
+                "is_running": action.is_running,
+                "total_seconds": action.total_seconds,
+                "is_recurring": action.is_recurring,
+                "sub_tasks": action.sub_tasks,
+                "dimension": None # Prevent lazy-loading attempt by Pydantic
+            }
+            portfolio.append(action_data)
+            
+        print(f"DEBUG: ActionRepo.get_unique_completed_actions - FOUND {len(portfolio)} unique actions with stats")
+        return portfolio

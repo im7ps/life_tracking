@@ -45,18 +45,21 @@ class RankWidget extends StatelessWidget {
           Container(
             width: 180,
             height: 180,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
-                colors: [AppColors.dovere, AppColors.anima],
+                colors: [
+                  AppColors.dovere.withValues(alpha: 0.3),
+                  AppColors.anima.withValues(alpha: 0.3),
+                ],
                 center: Alignment.center,
                 radius: 0.8,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 20,
-                  offset: Offset(0, 10),
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),

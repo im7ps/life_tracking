@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme_mode_provider.dart';
 import '../../../core/localization/locale_provider.dart';
+import '../../../core/networking/server_settings_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -12,6 +13,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentThemeMode = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
+    final currentServerUrl = ref.watch(serverUrlProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -48,6 +50,26 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showLanguageDialog(context, ref, currentLocale, l10n),
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
+          
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: const Text(
+              "CONNETTIVITÀ",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white54,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dns_rounded),
+            title: const Text("Indirizzo Server"),
+            subtitle: Text(currentServerUrl),
+            onTap: () => _showServerDialog(context, ref, currentServerUrl),
+          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
@@ -92,6 +114,53 @@ class SettingsScreen extends ConsumerWidget {
       default:
         return locale.languageCode;
     }
+  }
+
+  void _showServerDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String currentUrl,
+  ) {
+    final controller = TextEditingController(text: currentUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("INDIRIZZO SERVER"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Inserisci l'indirizzo IP del server (es. http://192.168.1.171:8000)",
+              style: TextStyle(fontSize: 12, color: Colors.white54),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "http://...",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ANNULLA"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUrl = controller.text.trim();
+              if (newUrl.isNotEmpty) {
+                ref.read(serverUrlProvider.notifier).setUrl(newUrl);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("SALVA"),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showThemeDialog(

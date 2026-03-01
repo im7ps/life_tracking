@@ -33,7 +33,14 @@ class TaskUIModel with _$TaskUIModel {
     int? durationMinutes,
     required int difficulty,
     required int satisfaction,
+    @Default(0) int completionCount,
     required String category,
+    @Default(false) bool isRunning,
+    @Default(0) int totalSeconds,
+    @Default([]) List<Map<String, dynamic>> subTasks,
+    @Default(false) bool isRecurring,
+    DateTime? lastStartedAt,
+    DateTime? scheduledDate,
   }) = _TaskUIModel;
 
   factory TaskUIModel.fromJson(Map<String, dynamic> json) =>
@@ -80,7 +87,21 @@ class TaskUIModel with _$TaskUIModel {
       category: category,
       status: status,
       isCompleted: status == 'COMPLETED',
+      completionCount: json['completion_count'] as int? ?? 0,
       durationMinutes: json['duration_minutes'] as int?,
+      isRunning: json['is_running'] as bool? ?? false,
+      totalSeconds: json['total_seconds'] as int? ?? 0,
+      subTasks: (json['sub_tasks'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          [],
+      isRecurring: json['is_recurring'] as bool? ?? false,
+      lastStartedAt: json['last_started_at'] != null 
+          ? DateTime.parse(json['last_started_at'] as String) 
+          : null,
+      scheduledDate: json['scheduled_date'] != null 
+          ? DateTime.parse(json['scheduled_date'] as String) 
+          : null,
     );
   }
 }

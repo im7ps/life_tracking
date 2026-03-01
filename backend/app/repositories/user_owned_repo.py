@@ -41,6 +41,25 @@ class UserOwnedRepo(BaseRepo[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await self.session.execute(statement)
         return result.scalars().all()
     
+    async def update_for_user(self, user_id: uuid.UUID, obj_id: uuid.UUID, obj_in: UpdateSchemaType) -> Optional[ModelType]:
+        """Aggiorna un oggetto solo se appartiene all'utente specificato."""
+        from sqlalchemy.orm import selectinload
+        
+        # Carichiamo l'oggetto con le relazioni necessarie
+        statement = select(self.model).where(
+            self.model.id == obj_id, 
+            self.model.user_id == user_id
+        )
+        if hasattr(self.model, 'dimension'):
+            statement = statement.options(selectinload(self.model.dimension))
+            
+        result = await self.session.execute(statement)
+        db_obj = result.scalar_one_or_none()
+        
+        if not db_obj:
+            return None
+        return await self.update(db_obj, obj_in)
+
     async def delete_for_user(self, user_id: uuid.UUID, obj_id: uuid.UUID) -> bool:
         """Cancella un oggetto solo se appartiene all'utente specificato."""
         db_obj = await self.get_by_id(obj_id, user_id)

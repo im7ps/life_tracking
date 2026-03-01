@@ -2,13 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../action/data/action_repository.dart';
-import '../../action/domain/action.dart';
+import '../../action/domain/action.dart' as domain_action;
 import '../../../core/storage/local_storage_service.dart';
 import 'dashboard_models.dart';
 
 export 'dashboard_models.dart';
 
 part 'dashboard_providers.g.dart';
+
+enum TimeBlockType { colazione, pranzo, cena, notte }
+
+@riverpod
+class TimeBlock extends _$TimeBlock {
+  @override
+  TimeBlockType build() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 6 && hour < 11) return TimeBlockType.colazione;
+    if (hour >= 11 && hour < 17) return TimeBlockType.pranzo;
+    if (hour >= 17 && hour < 23) return TimeBlockType.cena;
+    return TimeBlockType.notte;
+  }
+
+  String getLabel() {
+    switch (state) {
+      case TimeBlockType.colazione: return "COLAZIONE";
+      case TimeBlockType.pranzo: return "PRANZO";
+      case TimeBlockType.cena: return "CENA";
+      case TimeBlockType.notte: return "FINE GIORNATA";
+    }
+  }
+
+  String getNextLabel() {
+    switch (state) {
+      case TimeBlockType.colazione: return "PRANZO";
+      case TimeBlockType.pranzo: return "CENA";
+      case TimeBlockType.cena: return "FINE GIORNATA";
+      case TimeBlockType.notte: return "DOMANI";
+    }
+  }
+
+  double getProgress() {
+    final now = DateTime.now();
+    final minuteOfDay = now.hour * 60 + now.minute;
+
+    int start, end;
+    switch (state) {
+      case TimeBlockType.colazione: start = 6 * 60; end = 11 * 60; break;
+      case TimeBlockType.pranzo: start = 11 * 60; end = 17 * 60; break;
+      case TimeBlockType.cena: start = 17 * 60; end = 23 * 60; break;
+      case TimeBlockType.notte: return 1.0;
+    }
+
+    final total = end - start;
+    final current = (minuteOfDay - start).clamp(0, total);
+    return current / total;
+  }
+}
 
 @riverpod
 class TaskSort extends _$TaskSort {
@@ -177,10 +228,161 @@ class TaskList extends _$TaskList {
     }
   }
 
+  Future<void> removeTask(String id) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final newState = currentTasks.where((t) => t.id != id).toList();
+    await _save(newState);
+  }
+
+  Future<void> removeTaskByTitle(String title) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final newState = currentTasks.where((t) => t.title.toLowerCase() != title.toLowerCase()).toList();
+    await _save(newState);
+  }
+
   Future<void> _save(List<TaskUIModel> newState) async {
     state = AsyncValue.data(newState);
     final storage = ref.read(localStorageServiceProvider);
     await storage.saveTasks(newState);
+  }
+
+  Future<void> cycleStatus(String id) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final task = currentTasks.firstWhere((t) => t.id == id);
+    final repo = ref.read(actionRepositoryProvider);
+
+    String newStatus;
+    bool isCompleted = false;
+    bool isRunning = false;
+    final now = DateTime.now();
+    int newTotalSeconds = task.totalSeconds;
+
+    if (task.status == 'PENDING') {
+      newStatus = 'IN_PROGRESS';
+      isRunning = true;
+    } else if (task.status == 'IN_PROGRESS') {
+      newStatus = 'COMPLETED';
+      isCompleted = true;
+      isRunning = false;
+      if (task.lastStartedAt != null) {
+        newTotalSeconds += now.difference(task.lastStartedAt!).inSeconds;
+      }
+    } else {
+      newStatus = 'PENDING';
+      isCompleted = false;
+      isRunning = false;
+    }
+
+    final updatedTask = task.copyWith(
+      status: newStatus,
+      isCompleted: isCompleted,
+      isRunning: isRunning,
+      lastStartedAt: isRunning ? now : null,
+      totalSeconds: newTotalSeconds,
+    );
+
+    final newState = [
+      for (final t in currentTasks)
+        if (t.id == id) updatedTask else t,
+    ];
+    await _save(newState);
+
+    // Update Backend
+    await repo.updateAction(id, {
+      'status': newStatus,
+      'is_running': isRunning,
+      'last_started_at': isRunning ? now.toIso8601String() : null,
+      'total_seconds': newTotalSeconds,
+    });
+  }
+
+  Future<void> toggleTimer(String id) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final task = currentTasks.firstWhere((t) => t.id == id);
+    final repo = ref.read(actionRepositoryProvider);
+
+    final now = DateTime.now();
+    bool newIsRunning = !task.isRunning;
+    int newTotalSeconds = task.totalSeconds;
+
+    if (!newIsRunning && task.lastStartedAt != null) {
+      // Stopping: calculate elapsed time
+      newTotalSeconds += now.difference(task.lastStartedAt!).inSeconds;
+    }
+
+    final updatedTask = task.copyWith(
+      isRunning: newIsRunning,
+      lastStartedAt: newIsRunning ? now : null,
+      totalSeconds: newTotalSeconds,
+    );
+
+    // Update Local
+    final newState = [
+      for (final t in currentTasks)
+        if (t.id == id) updatedTask else t,
+    ];
+    await _save(newState);
+
+    // Update Backend
+    await repo.updateAction(id, {
+      'is_running': newIsRunning,
+      'last_started_at': newIsRunning ? now.toIso8601String() : null,
+      'total_seconds': newTotalSeconds,
+    });
+  }
+
+  Future<void> scheduleTask(String id, DateTime date) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final repo = ref.read(actionRepositoryProvider);
+
+    final updatedTask = currentTasks.firstWhere((t) => t.id == id).copyWith(
+      scheduledDate: date,
+    );
+
+    final newState = [
+      for (final t in currentTasks)
+        if (t.id == id) updatedTask else t,
+    ];
+    await _save(newState);
+
+    await repo.updateAction(id, {
+      'scheduled_date': date.toIso8601String(),
+    });
+  }
+
+  Future<void> updateSubTasks(String id, List<Map<String, dynamic>> subTasks) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final repo = ref.read(actionRepositoryProvider);
+
+    final updatedTask = currentTasks.firstWhere((t) => t.id == id).copyWith(
+      subTasks: subTasks,
+    );
+
+    final newState = [
+      for (final t in currentTasks)
+        if (t.id == id) updatedTask else t,
+    ];
+    await _save(newState);
+
+    await repo.updateAction(id, {
+      'sub_tasks': subTasks,
+    });
+  }
+
+  Future<void> toggleRecurring(String id) async {
+    final currentTasks = state.valueOrNull ?? [];
+    final task = currentTasks.firstWhere((t) => t.id == id);
+    final repo = ref.read(actionRepositoryProvider);
+
+    final updatedTask = task.copyWith(isRecurring: !task.isRecurring);
+
+    final newState = [
+      for (final t in currentTasks)
+        if (t.id == id) updatedTask else t,
+    ];
+    await _save(newState);
+
+    await repo.updateAction(id, {'is_recurring': updatedTask.isRecurring});
   }
 
   Future<void> toggleCompletion(String id) async {
@@ -218,32 +420,65 @@ class TaskList extends _$TaskList {
     await _save(newState);
   }
 
-  Future<void> concludeCheckpoint() async {
+  Future<void> concludeCheckpoint(Map<String, bool> decisions) async {
     final repo = ref.read(actionRepositoryProvider);
-    final storage = ref.read(localStorageServiceProvider);
     final currentTasks = state.valueOrNull ?? [];
 
     try {
-      for (final task in currentTasks) {
-        final status = task.isCompleted ? "COMPLETED" : "FAILED";
+      final List<TaskUIModel> rolloverTasks = [];
 
-        await repo.createAction(
-          ActionCreate(
-            description: task.title,
-            category: task.category,
-            difficulty: task.difficulty,
-            fulfillmentScore: task.satisfaction,
-            dimensionId: _mapCategoryToDimensionId(task.category),
-            startTime: DateTime.now(),
-            status: status,
-          ),
-        );
+      for (final task in currentTasks) {
+        if (task.isCompleted) {
+          // 1. Task Completata: aggiorniamo stato sul backend
+          await repo.updateAction(task.id, {'status': 'COMPLETED'});
+          debugPrint("CHECKPOINT: Task '${task.title}' marked COMPLETED.");
+          
+          if (task.isRecurring) {
+            // Se è ricorrente, creiamo una nuova istanza per il futuro (o la resettiamo)
+            // Per ora la ri-aggiungiamo alla lista locale come IN_PROGRESS per il prossimo blocco
+            final recurringTask = task.copyWith(
+              id: DateTime.now().microsecondsSinceEpoch.toString(),
+              isCompleted: false,
+              status: 'IN_PROGRESS',
+              totalSeconds: 0,
+              lastStartedAt: null,
+            );
+            
+            // Creiamo anche sul backend
+            await repo.createAction(domain_action.ActionCreate(
+              description: recurringTask.title,
+              category: recurringTask.category,
+              difficulty: recurringTask.difficulty,
+              fulfillmentScore: recurringTask.satisfaction,
+              dimensionId: _mapCategoryToDimensionId(recurringTask.category),
+              status: 'IN_PROGRESS',
+            ));
+            
+            rolloverTasks.add(recurringTask);
+            debugPrint("CHECKPOINT: Recurring Task '${task.title}' RE-CREATED.");
+          }
+        } else {
+          final shouldRollover = decisions[task.id] ?? false;
+          if (shouldRollover) {
+            // 2. Rilancio (Rollover): rimane IN_PROGRESS, aggiorniamo solo il timestamp per il nuovo blocco
+            await repo.updateAction(task.id, {
+              'start_time': DateTime.now().toIso8601String(),
+            });
+            rolloverTasks.add(task);
+            debugPrint("CHECKPOINT: Task '${task.title}' ROLLED OVER.");
+          } else {
+            // 3. Abbandono: segnata come FALLITA sul backend
+            await repo.updateAction(task.id, {'status': 'FAILED'});
+            debugPrint("CHECKPOINT: Task '${task.title}' marked FAILED.");
+          }
+        }
       }
 
-      await storage.clearTasks();
-      state = const AsyncValue.data([]);
+      // Aggiorniamo lo stato locale: restano solo quelle rilanciate
+      await _save(rolloverTasks);
+      debugPrint("CHECKPOINT: Concluded. Local dashboard cleared except for ${rolloverTasks.length} rolled over tasks.");
     } catch (e) {
-      debugPrint("Errore durante Sync Checkpoint: $e");
+      debugPrint("ERRORE durante concludeCheckpoint: $e");
       rethrow;
     }
   }

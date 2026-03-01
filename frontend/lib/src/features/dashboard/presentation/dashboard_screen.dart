@@ -7,6 +7,8 @@ import 'widgets/day0/rank_widget.dart';
 import 'widgets/day0/checkpoint_bar.dart';
 import 'widgets/day0/identity_grid.dart';
 import 'widgets/visualizations/category_visualizer.dart';
+import 'widgets/dynamic_background.dart';
+import 'widgets/active_task_bar.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -46,7 +48,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final currentCat = categories[currentCatIndex];
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       drawer: Drawer(
         backgroundColor: theme.cardTheme.color,
         child: Column(
@@ -83,161 +85,173 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Builder(
-                    builder: (context) => Align(
-                      alignment: Alignment.centerLeft,
+      body: DynamicBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Builder(
+                      builder: (context) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(Icons.menu_rounded, color: AppColors.grey),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
                       child: IconButton(
-                        icon: const Icon(Icons.menu_rounded, color: AppColors.grey),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
+                        icon: const Icon(Icons.help_outline_rounded, color: AppColors.grey),
+                        onPressed: () => _showTutorial(context),
                       ),
                     ),
-                  ),
-                  Text(
-                    currentCat.label,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Dashboard Indicators (Icons)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(categories.length, (index) {
-                  final cat = categories[index];
-                  final isSelected = index == currentCatIndex;
-                  return GestureDetector(
-                    onTap: () {
-                      final currentPage = _pageController.page?.round() ?? 0;
-                      final targetPage = currentPage + (index - currentCatIndex);
-                      _pageController.animateToPage(
-                        targetPage,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? cat.color.withValues(alpha: 0.2) : Colors.transparent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        cat.icon,
-                        size: 20,
-                        color: isSelected ? cat.color : AppColors.grey.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
+                    Text(
+                      currentCat.label,
 
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  final actualIndex = index % categories.length;
-                  ref.read(currentCategoryProvider.notifier).setIndex(actualIndex);
-                },
-                itemBuilder: (context, index) {
-                  final actualIndex = index % categories.length;
-                  final cat = categories[actualIndex];
-                  final tasks = ref.watch(tasksByCategoryProvider(cat.id));
-                  final rankScore = ref.watch(rankByCategoryProvider(cat.id));
-                  final rankLabel = ref.watch(rankLabelByCategoryProvider(cat.id));
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Dashboard Indicators (Icons)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(categories.length, (index) {
+                    final cat = categories[index];
+                    final isSelected = index == currentCatIndex;
+                    return GestureDetector(
+                      onTap: () {
+                        final currentPage = _pageController.page?.round() ?? 0;
+                        final targetPage = currentPage + (index - currentCatIndex);
+                        _pageController.animateToPage(
+                          targetPage,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? cat.color.withValues(alpha: 0.2) : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          cat.icon,
+                          size: 20,
+                          color: isSelected ? cat.color : AppColors.grey.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        RankWidget(
-                          score: rankScore,
-                          rankLabel: rankLabel,
-                          onTap: () {
-                            // TODO: Show history
-                          },
-                        ),
-                        const SizedBox(height: 48),
-                        const CheckpointBar(
-                          progress: 0.6,
-                          currentBlock: "Pranzo",
-                          nextBlock: "Cena",
-                        ),
-                        const SizedBox(height: 32),
-                        
-                        // Action Button (Lightning Bolt)
-                        GestureDetector(
-                          onTap: () => context.push('/consultant'),
-                          child: Container(
-                            height: 64,
-                            width: 64,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: AppColors.primaryGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black45,
-                                  blurRadius: 12,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(Icons.bolt_rounded, size: 36, color: Colors.white),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    final actualIndex = index % categories.length;
+                    ref.read(currentCategoryProvider.notifier).setIndex(actualIndex);
+                  },
+                  itemBuilder: (context, index) {
+                    final actualIndex = index % categories.length;
+                    final cat = categories[actualIndex];
+                    final tasks = ref.watch(tasksByCategoryProvider(cat.id));
+                    final rankScore = ref.watch(rankByCategoryProvider(cat.id));
+                    final rankLabel = ref.watch(rankLabelByCategoryProvider(cat.id));
+                    final timeBlock = ref.watch(timeBlockProvider.notifier);
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          RankWidget(
+                            score: rankScore,
+                            rankLabel: rankLabel,
+                            onTap: () {
+                              // TODO: Show history
+                            },
                           ),
-                        ),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // Section Header with Sort
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "IDENTITÀ IN AZIONE",
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: 48),
+                          CheckpointBar(
+                            progress: timeBlock.getProgress(),
+                            currentBlock: timeBlock.getLabel(),
+                            nextBlock: timeBlock.getNextLabel(),
+                          ),
+                          const SizedBox(height: 32),
+                          
+                          // Action Button (Lightning Bolt)
+                          GestureDetector(
+                            onTap: () => context.push('/consultant'),
+                            child: Container(
+                              height: 64,
+                              width: 64,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: AppColors.primaryGradient,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black45,
+                                    blurRadius: 12,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
                               ),
+                              child: const Icon(Icons.bolt_rounded, size: 36, color: Colors.white),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.sort_rounded, size: 20, color: AppColors.grey),
-                              onPressed: () => _showSortOptions(context, ref),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        CategoryVisualizer(category: cat, tasks: tasks),
-                        const SizedBox(height: 16),
-                        IdentityGrid(
-                          tasks: tasks,
-                          onTaskTap: (task) => ref.read(taskListProvider.notifier).toggleCompletion(task.id),
-                          onTaskLongPress: (task) => _showTaskDetail(context, ref, task),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  );
-                },
+                          ),
+                          
+                          const SizedBox(height: 32),
+                          
+                          // Section Header with Sort
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "RIEPILOGO TASK",
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.sort_rounded, size: 20, color: AppColors.grey),
+                                onPressed: () => _showSortOptions(context, ref),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          CategoryVisualizer(category: cat, tasks: tasks),
+                          const SizedBox(height: 16),
+                          IdentityGrid(
+                            tasks: tasks,
+                            onTaskTap: (task) => ref.read(taskListProvider.notifier).toggleCompletion(task.id),
+                            onTaskLongPress: (task) => _showTaskDetail(context, ref, task),
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+              const ActiveTaskBar(),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -257,6 +271,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         onTap: (index) {
           if (index == 1) context.push('/portfolio');
         },
+      ),
+    );
+  }
+
+  void _showTutorial(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text("GUIDA DAY 0", style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _tutorialItem(Icons.bolt_rounded, "Il Consulente", "Tocca il fulmine per ricevere 5 proposte basate sul tuo stato attuale."),
+            _tutorialItem(Icons.touch_app_rounded, "Azioni Rapide", "Tocca una task per completarla, tieni premuto per i dettagli."),
+            _tutorialItem(Icons.play_arrow_rounded, "Timer", "Usa il tasto play sulle card per tracciare il tempo reale."),
+            _tutorialItem(Icons.auto_awesome_mosaic_rounded, "Categorie", "Scorri a destra e sinistra per cambiare sfera d'azione."),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CAPITO")),
+        ],
+      ),
+    );
+  }
+
+  Widget _tutorialItem(IconData icon, String title, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.anima, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(desc, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -303,63 +362,199 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _showTaskDetail(BuildContext context, WidgetRef ref, TaskUIModel task) {
+    final TextEditingController subTaskController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Icon(task.icon, size: 48, color: _getCategoryColor(task.category)),
-            const SizedBox(height: 16),
-            Text(
-              task.title.toUpperCase(),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "CATEGORIA: ${task.category.toUpperCase()}",
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(color: AppColors.grey),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStatChip(
-                  context,
-                  "Fatica",
-                  task.difficulty.toString(),
-                  Icons.fitness_center,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(width: 12),
-                _buildStatChip(
-                  context,
-                  "Soddisfazione",
-                  task.satisfaction.toString(),
-                  Icons.star,
+              ),
+              Icon(task.icon, size: 48, color: _getCategoryColor(task.category)),
+              const SizedBox(height: 16),
+              Text(
+                task.title.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            const SizedBox(height: 32),
-          ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "CATEGORIA: ${task.category.toUpperCase()}",
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: AppColors.grey),
+              ),
+              const SizedBox(height: 24),
+              
+              // Stats
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildStatChip(context, "Fatica", task.difficulty.toString(), Icons.fitness_center),
+                  const SizedBox(width: 12),
+                  _buildStatChip(context, "Soddisfazione", task.satisfaction.toString(), Icons.star),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Recurring Toggle
+              SwitchListTile(
+                title: const Text("TASK RICORRENTE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54)),
+                subtitle: const Text("Si resetta automaticamente ogni giorno", style: TextStyle(fontSize: 10, color: Colors.white24)),
+                value: task.isRecurring,
+                activeColor: AppColors.energia,
+                onChanged: (val) {
+                  ref.read(taskListProvider.notifier).toggleRecurring(task.id);
+                  setModalState(() {
+                    task = task.copyWith(isRecurring: val);
+                  });
+                },
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Sub-tasks Section
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "SUB-TASK / CHECKLIST",
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Colors.white54,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              ...task.subTasks.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final sub = entry.value;
+                final isDone = sub['done'] as bool? ?? false;
+                
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: isDone,
+                        activeColor: _getCategoryColor(task.category),
+                        onChanged: (val) {
+                          final newList = List<Map<String, dynamic>>.from(task.subTasks);
+                          newList[idx] = {...newList[idx], 'done': val};
+                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                          // We need to update local task state to reflect in UI immediately
+                          setModalState(() {
+                            task = task.copyWith(subTasks: newList);
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: Text(
+                          sub['title'] as String? ?? "",
+                          style: TextStyle(
+                            decoration: isDone ? TextDecoration.lineThrough : null,
+                            color: isDone ? Colors.white38 : Colors.white,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 16, color: Colors.white24),
+                        onPressed: () {
+                          final newList = List<Map<String, dynamic>>.from(task.subTasks);
+                          newList.removeAt(idx);
+                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                          setModalState(() {
+                            task = task.copyWith(subTasks: newList);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              
+              // Add Sub-task field
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: subTaskController,
+                        decoration: const InputDecoration(
+                          hintText: "Aggiungi elemento...",
+                          hintStyle: TextStyle(color: Colors.white24, fontSize: 14),
+                          border: InputBorder.none,
+                        ),
+                        onSubmitted: (val) {
+                          if (val.trim().isNotEmpty) {
+                            final newList = [...task.subTasks, {'title': val.trim(), 'done': false}];
+                            ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                            setModalState(() {
+                              task = task.copyWith(subTasks: newList);
+                              subTaskController.clear();
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: AppColors.energia),
+                      onPressed: () {
+                        if (subTaskController.text.trim().isNotEmpty) {
+                          final newList = [...task.subTasks, {'title': subTaskController.text.trim(), 'done': false}];
+                          ref.read(taskListProvider.notifier).updateSubTasks(task.id, newList);
+                          setModalState(() {
+                            task = task.copyWith(subTasks: newList);
+                            subTaskController.clear();
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Delete Button
+              TextButton.icon(
+                onPressed: () async {
+                  await ref.read(taskListProvider.notifier).removeTask(task.id);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                icon: const Icon(Icons.delete_outline, color: AppColors.passione),
+                label: const Text("ELIMINA TASK", style: TextStyle(color: AppColors.passione)),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

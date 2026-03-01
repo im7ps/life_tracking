@@ -16,7 +16,7 @@ class DutyMountain extends StatelessWidget {
       height: 250,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.5),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.dovere.withValues(alpha: 0.2)),
         boxShadow: [

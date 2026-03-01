@@ -51,6 +51,16 @@ class LocalStorageService {
     await prefs.remove(_tasksKey);
   }
 
+  Future<String?> loadServerUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('server_url');
+  }
+
+  Future<void> saveServerUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('server_url', url);
+  }
+
   Future<String?> getString(String key) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(key);

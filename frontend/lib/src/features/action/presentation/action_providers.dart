@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import '../../dashboard/presentation/dashboard_models.dart';
+import '../../dashboard/presentation/dashboard_providers.dart';
 import '../data/action_repository.dart';
 import '../domain/action.dart' as domain_action;
 
@@ -44,7 +44,17 @@ class Portfolio extends _$Portfolio {
 
   Future<void> removeTask(String actionId) async {
     final repo = ref.read(actionRepositoryProvider);
+    final currentPortfolio = state.valueOrNull ?? [];
+    final taskToDelete = currentPortfolio.firstWhere((t) => t.id == actionId);
+
+    // 1. Delete from Backend
     await repo.deleteAction(actionId);
+
+    // 2. Delete from local TaskList (Dashboard) if present
+    await ref
+        .read(taskListProvider.notifier)
+        .removeTaskByTitle(taskToDelete.title);
+
     ref.invalidateSelf();
   }
 }

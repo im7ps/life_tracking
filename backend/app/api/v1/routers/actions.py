@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, status
-from app.schemas.action import ActionRead, ActionCreate
+from app.schemas.action import ActionRead, ActionCreate, ActionUpdate
 from app.models.user import User
 from app.api.v1.deps import get_current_active_user, get_action_service
 from app.services.action_service import ActionService
@@ -39,6 +39,29 @@ async def read_portfolio(
     Retrieve user portfolio (unique actions).
     """
     return await service.get_user_portfolio(current_user.id)
+
+@router.patch("/{action_id}", response_model=ActionRead)
+async def update_action(
+    action_id: str,
+    action_in: ActionUpdate,
+    current_user: User = Depends(get_current_active_user),
+    service: ActionService = Depends(get_action_service),
+):
+    """
+    Update a specific action.
+    """
+    import uuid
+    try:
+        uid = uuid.UUID(action_id)
+    except ValueError:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid UUID format")
+        
+    action = await service.update_action(current_user.id, uid, action_in)
+    if not action:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Action not found or not owned by user")
+    return action
 
 @router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_action(

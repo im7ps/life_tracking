@@ -18,6 +18,9 @@ class Action with _$Action {
     int? durationMinutes,
     required String userId,
     required String dimensionId,
+    @Default(0) int completionCount,
+    @Default([]) List<Map<String, dynamic>> subTasks,
+    @Default(false) bool isRecurring,
     Dimension? dimension,
   }) = _Action;
 

@@ -456,6 +456,22 @@ final rankLabelProvider = AutoDisposeProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RankLabelRef = AutoDisposeProviderRef<String>;
+String _$timeBlockHash() => r'c515a0ac45070b82778888f2331247095e028469';
+
+/// See also [TimeBlock].
+@ProviderFor(TimeBlock)
+final timeBlockProvider =
+    AutoDisposeNotifierProvider<TimeBlock, TimeBlockType>.internal(
+      TimeBlock.new,
+      name: r'timeBlockProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$timeBlockHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$TimeBlock = AutoDisposeNotifier<TimeBlockType>;
 String _$taskSortHash() => r'4e01250e293f838561fba6a472b51e2e2993b60c';
 
 /// See also [TaskSort].
@@ -504,7 +520,7 @@ final categoryOrderProvider =
     );
 
 typedef _$CategoryOrder = AutoDisposeAsyncNotifier<List<String>>;
-String _$taskListHash() => r'f9e8c8946a805bdf59bab6f6b4c40ec8c5bb5586';
+String _$taskListHash() => r'10474630f5ed081cd9dccac762a1edbb3e0babfa';
 
 /// See also [TaskList].
 @ProviderFor(TaskList)

@@ -1,20 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Preparazione per step successivo
 import '../../features/auth/presentation/auth_state_provider.dart';
 import '../storage/storage_provider.dart';
 import 'auth_interceptor.dart';
 import 'error_interceptor.dart';
+import 'server_settings_provider.dart';
 
 part 'dio_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 Dio dio(Ref ref) {
   final storage = ref.watch(secureStorageProvider);
-  
-  // Base URL da .env (fallback per sicurezza durante dev)
-  final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:8000';
+  final baseUrl = ref.watch(serverUrlProvider);
 
   final dio = Dio(
     BaseOptions(

@@ -111,11 +111,10 @@ class _CheckpointReviewScreenState
                   ),
                 ),
                 onPressed: () async {
-                  // In un'implementazione reale qui gestiremmo il rilancio o l'abbandono
-                  // Per ora usiamo concludeCheckpoint esistente
+                  // Passiamo le decisioni di rilancio/abbandono al provider
                   await ref
                       .read(taskListProvider.notifier)
-                      .concludeCheckpoint();
+                      .concludeCheckpoint(_decisions);
                   if (context.mounted) context.go('/');
                 },
                 child: const Text(

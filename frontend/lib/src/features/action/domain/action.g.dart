@@ -20,6 +20,13 @@ _$ActionImpl _$$ActionImplFromJson(Map<String, dynamic> json) => _$ActionImpl(
   durationMinutes: (json['duration_minutes'] as num?)?.toInt(),
   userId: json['user_id'] as String,
   dimensionId: json['dimension_id'] as String,
+  completionCount: (json['completion_count'] as num?)?.toInt() ?? 0,
+  subTasks:
+      (json['sub_tasks'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList() ??
+      const [],
+  isRecurring: json['is_recurring'] as bool? ?? false,
   dimension: json['dimension'] == null
       ? null
       : Dimension.fromJson(json['dimension'] as Map<String, dynamic>),
@@ -38,6 +45,9 @@ Map<String, dynamic> _$$ActionImplToJson(_$ActionImpl instance) =>
       'duration_minutes': instance.durationMinutes,
       'user_id': instance.userId,
       'dimension_id': instance.dimensionId,
+      'completion_count': instance.completionCount,
+      'sub_tasks': instance.subTasks,
+      'is_recurring': instance.isRecurring,
       'dimension': instance.dimension?.toJson(),
     };
 

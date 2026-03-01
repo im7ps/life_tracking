@@ -32,6 +32,9 @@ mixin _$Action {
   int? get durationMinutes => throw _privateConstructorUsedError;
   String get userId => throw _privateConstructorUsedError;
   String get dimensionId => throw _privateConstructorUsedError;
+  int get completionCount => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>> get subTasks => throw _privateConstructorUsedError;
+  bool get isRecurring => throw _privateConstructorUsedError;
   Dimension? get dimension => throw _privateConstructorUsedError;
 
   /// Serializes this Action to a JSON map.
@@ -60,6 +63,9 @@ abstract class $ActionCopyWith<$Res> {
     int? durationMinutes,
     String userId,
     String dimensionId,
+    int completionCount,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
     Dimension? dimension,
   });
 
@@ -92,6 +98,9 @@ class _$ActionCopyWithImpl<$Res, $Val extends Action>
     Object? durationMinutes = freezed,
     Object? userId = null,
     Object? dimensionId = null,
+    Object? completionCount = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
     Object? dimension = freezed,
   }) {
     return _then(
@@ -140,6 +149,18 @@ class _$ActionCopyWithImpl<$Res, $Val extends Action>
                 ? _value.dimensionId
                 : dimensionId // ignore: cast_nullable_to_non_nullable
                       as String,
+            completionCount: null == completionCount
+                ? _value.completionCount
+                : completionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            subTasks: null == subTasks
+                ? _value.subTasks
+                : subTasks // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
+            isRecurring: null == isRecurring
+                ? _value.isRecurring
+                : isRecurring // ignore: cast_nullable_to_non_nullable
+                      as bool,
             dimension: freezed == dimension
                 ? _value.dimension
                 : dimension // ignore: cast_nullable_to_non_nullable
@@ -184,6 +205,9 @@ abstract class _$$ActionImplCopyWith<$Res> implements $ActionCopyWith<$Res> {
     int? durationMinutes,
     String userId,
     String dimensionId,
+    int completionCount,
+    List<Map<String, dynamic>> subTasks,
+    bool isRecurring,
     Dimension? dimension,
   });
 
@@ -216,6 +240,9 @@ class __$$ActionImplCopyWithImpl<$Res>
     Object? durationMinutes = freezed,
     Object? userId = null,
     Object? dimensionId = null,
+    Object? completionCount = null,
+    Object? subTasks = null,
+    Object? isRecurring = null,
     Object? dimension = freezed,
   }) {
     return _then(
@@ -264,6 +291,18 @@ class __$$ActionImplCopyWithImpl<$Res>
             ? _value.dimensionId
             : dimensionId // ignore: cast_nullable_to_non_nullable
                   as String,
+        completionCount: null == completionCount
+            ? _value.completionCount
+            : completionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        subTasks: null == subTasks
+            ? _value._subTasks
+            : subTasks // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
+        isRecurring: null == isRecurring
+            ? _value.isRecurring
+            : isRecurring // ignore: cast_nullable_to_non_nullable
+                  as bool,
         dimension: freezed == dimension
             ? _value.dimension
             : dimension // ignore: cast_nullable_to_non_nullable
@@ -288,8 +327,11 @@ class _$ActionImpl implements _Action {
     this.durationMinutes,
     required this.userId,
     required this.dimensionId,
+    this.completionCount = 0,
+    final List<Map<String, dynamic>> subTasks = const [],
+    this.isRecurring = false,
     this.dimension,
-  });
+  }) : _subTasks = subTasks;
 
   factory _$ActionImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActionImplFromJson(json);
@@ -320,11 +362,26 @@ class _$ActionImpl implements _Action {
   @override
   final String dimensionId;
   @override
+  @JsonKey()
+  final int completionCount;
+  final List<Map<String, dynamic>> _subTasks;
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get subTasks {
+    if (_subTasks is EqualUnmodifiableListView) return _subTasks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subTasks);
+  }
+
+  @override
+  @JsonKey()
+  final bool isRecurring;
+  @override
   final Dimension? dimension;
 
   @override
   String toString() {
-    return 'Action(id: $id, startTime: $startTime, endTime: $endTime, description: $description, category: $category, difficulty: $difficulty, status: $status, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, userId: $userId, dimensionId: $dimensionId, dimension: $dimension)';
+    return 'Action(id: $id, startTime: $startTime, endTime: $endTime, description: $description, category: $category, difficulty: $difficulty, status: $status, fulfillmentScore: $fulfillmentScore, durationMinutes: $durationMinutes, userId: $userId, dimensionId: $dimensionId, completionCount: $completionCount, subTasks: $subTasks, isRecurring: $isRecurring, dimension: $dimension)';
   }
 
   @override
@@ -350,6 +407,11 @@ class _$ActionImpl implements _Action {
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.dimensionId, dimensionId) ||
                 other.dimensionId == dimensionId) &&
+            (identical(other.completionCount, completionCount) ||
+                other.completionCount == completionCount) &&
+            const DeepCollectionEquality().equals(other._subTasks, _subTasks) &&
+            (identical(other.isRecurring, isRecurring) ||
+                other.isRecurring == isRecurring) &&
             (identical(other.dimension, dimension) ||
                 other.dimension == dimension));
   }
@@ -369,6 +431,9 @@ class _$ActionImpl implements _Action {
     durationMinutes,
     userId,
     dimensionId,
+    completionCount,
+    const DeepCollectionEquality().hash(_subTasks),
+    isRecurring,
     dimension,
   );
 
@@ -399,6 +464,9 @@ abstract class _Action implements Action {
     final int? durationMinutes,
     required final String userId,
     required final String dimensionId,
+    final int completionCount,
+    final List<Map<String, dynamic>> subTasks,
+    final bool isRecurring,
     final Dimension? dimension,
   }) = _$ActionImpl;
 
@@ -426,6 +494,12 @@ abstract class _Action implements Action {
   String get userId;
   @override
   String get dimensionId;
+  @override
+  int get completionCount;
+  @override
+  List<Map<String, dynamic>> get subTasks;
+  @override
+  bool get isRecurring;
   @override
   Dimension? get dimension;
 

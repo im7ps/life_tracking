@@ -54,6 +54,17 @@ class ActionRepository {
     }
   }
 
+  Future<Action> updateAction(String actionId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.patch('/api/v1/actions/$actionId', data: data);
+      return Action.fromJson(response.data);
+    } catch (e, stack) {
+      print("ERROR in updateAction: $e");
+      print(stack);
+      rethrow;
+    }
+  }
+
   Future<void> deleteAction(String actionId) async {
     try {
       await _dio.delete('/api/v1/actions/$actionId');

@@ -2,27 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../dashboard_providers.dart';
+import 'animated_border_painter.dart';
 
-class IdentityGrid extends ConsumerWidget {
+class IdentityGrid extends ConsumerStatefulWidget {
   final List<TaskUIModel> tasks;
-  final Function(TaskUIModel) onTaskLongPress;
   final Function(TaskUIModel) onTaskTap;
+  final Function(TaskUIModel) onTaskLongPress;
 
   const IdentityGrid({
     super.key,
     required this.tasks,
-    required this.onTaskLongPress,
     required this.onTaskTap,
+    required this.onTaskLongPress,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (tasks.isEmpty) {
-      return Center(
+  ConsumerState<IdentityGrid> createState() => _IdentityGridState();
+}
+
+class _IdentityGridState extends ConsumerState<IdentityGrid> with SingleTickerProviderStateMixin {
+  late AnimationController _borderController;
+
+  @override
+  void initState() {
+    super.initState();
+    _borderController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _borderController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (widget.tasks.isEmpty) {
+      return Container(
+        height: 200,
+        alignment: Alignment.center,
         child: Text(
-          "Nessuna missione assegnata.",
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium,
+          "NESSUNA TASK",
+          style: theme.textTheme.labelLarge?.copyWith(color: AppColors.grey),
         ),
       );
     }
@@ -32,94 +58,85 @@ class IdentityGrid extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 1,
       ),
-      itemCount: tasks.length,
+      itemCount: widget.tasks.length,
       itemBuilder: (context, index) {
-        final task = tasks[index];
+        final task = widget.tasks[index];
         final categoryColor = _getCategoryColor(task.category);
-        final theme = Theme.of(context);
-
-        final isInProgress = task.status == "IN_PROGRESS";
-        final isCompleted = task.status == "COMPLETED";
+        
+        // Status determination
+        final isCompleted = task.status == 'COMPLETED';
+        final isInProgress = task.status == 'IN_PROGRESS';
+        final isPending = task.status == 'PENDING';
 
         return GestureDetector(
-          onTap: () => onTaskTap(task),
-          onLongPress: () => onTaskLongPress(task),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              color: isCompleted 
-                  ? categoryColor.withValues(alpha: 0.2) 
-                  : isInProgress
-                      ? categoryColor.withValues(alpha: 0.1)
-                      : theme.cardTheme.color,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isCompleted 
-                    ? categoryColor.withValues(alpha: 0.5) 
-                    : isInProgress
-                        ? categoryColor
-                        : Colors.transparent,
-                width: isInProgress ? 3 : 2,
-              ),
-              boxShadow: [
-                if (isCompleted || isInProgress)
-                  BoxShadow(
-                    color: categoryColor.withValues(alpha: 0.3),
-                    blurRadius: isInProgress ? 16 : 12,
-                    spreadRadius: isInProgress ? 3 : 2,
+          onTap: () => ref.read(taskListProvider.notifier).cycleStatus(task.id),
+          onLongPress: () => widget.onTaskLongPress(task),
+          child: Stack(
+            children: [
+              // In Progress border animation
+              if (isInProgress)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: AnimatedBorderPainter(
+                      animation: _borderController,
+                      color: categoryColor,
+                    ),
                   ),
-                const BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
                 ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  task.icon,
-                  color: (isCompleted || isInProgress)
+              
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                decoration: BoxDecoration(
+                  color: isCompleted 
                       ? categoryColor 
-                      : categoryColor.withValues(alpha: 0.4),
-                  size: 24,
+                      : isInProgress
+                          ? categoryColor.withValues(alpha: 0.1)
+                          : theme.cardTheme.color?.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: isPending ? Border.all(color: categoryColor.withValues(alpha: 0.4), width: 1.5) : null,
                 ),
-                if (isInProgress)
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        task.icon,
+                        color: (isInProgress || isCompleted)
+                            ? Colors.white 
+                            : categoryColor.withValues(alpha: 0.4),
+                        size: 24,
                       ),
-                    ),
+                      if (task.totalSeconds > 0 && !isCompleted)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            _formatDuration(task.totalSeconds),
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: isInProgress ? Colors.white70 : AppColors.grey,
+                              fontWeight: isInProgress ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                if (task.durationMinutes != null)
-                  Positioned(
-                    bottom: 4,
-                    right: 4,
-                    child: Text(
-                      "${task.durationMinutes}'",
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: (isCompleted || isInProgress) ? categoryColor : AppColors.grey,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         );
       },
     );
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return "$minutes:${seconds.toString().padLeft(2, '0')}";
   }
 
   Color _getCategoryColor(String category) {
