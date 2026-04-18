@@ -116,7 +116,7 @@ async def start_new_action(
     
     action_in = ActionCreate(
         description=description,
-        dimension_id=normalized_id,
+        dimension_id=str,
         category=normalized_id.capitalize(),
         fulfillment_score=fulfillment_score,
         duration_minutes=duration_minutes,

@@ -4,7 +4,6 @@
 # Curare la light mode (Verificare contrasti e colori)
 
 ## 🚀 Nuove Funzionalità (Utilità & UX)
-# Inserire varie personalità dell'LLM (selezionabili dall'utente)
 # Focus Mode con "Deep Work" (Timer dedicato con suoni ambientali)
 # Sfide Context-Aware (Notifiche basate su posizione/GPS)
 # Riflessione Post-Task (Feedback qualitativo dopo il completamento)

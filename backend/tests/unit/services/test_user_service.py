@@ -42,6 +42,9 @@ async def test_create_user_success(user_service: UserService):
     # Check that the password was hashed
     assert created_user.hashed_password != user_data.password
     
+    # Check that the session's commit method was called once
+    await user_service.session.commit.assert_awaited_once()
+    
     # Check that the user was "saved" in the fake repo
     saved_user = await user_service.user_repo.get_by_username("testuser")
     assert saved_user is not None

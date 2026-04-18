@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel
 import uuid
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 from pydantic import field_validator
+
 
 from .base import TunableBaseModel
 from .dimension import DimensionRead
@@ -47,7 +48,7 @@ class ActionBase(TunableBaseModel):
         return v
 
 class ActionCreate(ActionBase):
-    dimension_id: str # Required (Slug)
+    dimension_id: Literal["dovere", "passione", "energia", "relazioni", "anima"]  # Required (Slug)
     fulfillment_score: int = 3
     category: str = "Dovere"
     difficulty: int = 3
