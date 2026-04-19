@@ -1,21 +1,21 @@
 
-from graph_components.graph import Graph
-from graph_components.nodes import handle_portfolio, handle_rank, modify_category
+from backend.training.langchain.components.graph import Graph
+from backend.training.langchain.components.nodes import handle_portfolio, handle_rank, modify_category
 
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END
 
 from typing import Literal, Hashable
+import asyncio
 
 from dotenv import load_dotenv
 load_dotenv()
 
-async def simple_router(graph: Graph) -> Literal["portfolio", "rank", "__end__"]:
+async def simple_router(state: Graph) -> Literal["portfolio", "rank", "__end__"]:
     last_input = ""
-    cronologia = graph.get("cronologia", [])
-    # print(f"----\nCronologia: {cronologia}")
-    if cronologia:
-        last_input = cronologia[-1].content
+    messages = state.get("messages", [])
+    if messages:
+        last_input = messages[-1].content
         if "portfolio" in last_input:
             return "portfolio"
         elif "rank" in last_input:
@@ -39,17 +39,17 @@ def build_workflow(simple_router):
     workflow.add_conditional_edges("modify_category_node", simple_router, my_map)
     return workflow
 
-import asyncio
+
 
 async def test():
     workflow = build_workflow(simple_router=simple_router)
     app = workflow.compile()
     inputs: Graph = {
-        "cronologia": [HumanMessage(content="Voglio vedere il mio rank")],
+        "messages": [HumanMessage(content="Voglio vedere il mio rank")],
         "category": "initial_category",
         }
     result = await app.ainvoke(inputs, config={"recursion_limit": 10})
-    # print(result)
+    print(result)
 
 if __name__ == "__main__":
     asyncio.run(test())

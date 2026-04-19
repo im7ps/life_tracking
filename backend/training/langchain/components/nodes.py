@@ -1,4 +1,4 @@
-from .graph import Graph
+from backend.training.langchain.components.graph import Graph
 
 def modify_category(state: Graph):
     # print("-----\nI'm modifing the category")

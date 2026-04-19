@@ -4,5 +4,5 @@ from typing import Annotated, TypedDict
 
 
 class Graph(TypedDict, total=False):
-    cronologia: Annotated[list[BaseMessage], add_messages]
+    messages: Annotated[list[BaseMessage], add_messages]
     category: str

@@ -1,0 +1,75 @@
+import os
+import sys
+import asyncio
+from dotenv import load_dotenv
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# --- CONFIGURAZIONE AMBIENTE (Indispensabile per far girare il file) ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Risaliamo: langchain -> training -> backend
+backend_root = os.path.dirname(os.path.dirname(current_dir))
+
+dotenv_path = os.path.join(backend_root, ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path, override=True)
+    print(f"DEBUG ENV: .env caricato da {backend_root}")
+
+if not os.getenv("DATABASE_URL"):
+    user = os.getenv("POSTGRES_USER")
+    pw = os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("POSTGRES_HOST", "localhost")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB")
+    if all([user, pw, db]):
+        os.environ["DATABASE_URL"] = f"postgresql://{user}:{pw}@{host}:{port}/{db}"
+
+if backend_root not in sys.path:
+    sys.path.insert(0, backend_root)
+# -----------------------------------------------------------------------
+
+from training.langchain.components.graph import Graph
+from training.langchain.components.invoke_model import invoke_model
+from training.langchain.components.persistent_memory import get_db_memory
+
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
+
+from langgraph.graph import StateGraph, START, END
+
+def build_workflow() -> StateGraph:
+    workflow = StateGraph(Graph)
+    
+    workflow.add_node("agent", invoke_model)
+    workflow.add_edge(START, "agent")
+    workflow.add_edge("agent", END)
+    
+    return workflow
+
+async def main():
+    checkpointer, pool = await get_db_memory()
+    await checkpointer.setup()
+
+    app =  build_workflow().compile(checkpointer=checkpointer)
+    
+    input: Graph = {
+        "messages": [
+            HumanMessage(content="Come mi chiamo"),
+            ]
+        }
+    
+    config: RunnableConfig = {
+        "configurable": {
+            "thread_id": "thread_1"
+        }
+    }
+    
+    result = await app.ainvoke(input=input, config=config)
+    await pool.close()
+
+    for msg in result["messages"]:
+        print(f"Output: {msg.content}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -1,0 +1,19 @@
+from training.langchain.components.graph import Graph
+from training.langchain.components.llm import fetch_llm
+
+async def invoke_model(state: Graph):
+    model = fetch_llm()
+    messages = state.get("messages", [])
+    response = ""
+    if messages:
+        response = await model.ainvoke(messages)
+    return {"messages": [response]}
+
+async def invoke_model_with_tools(state: Graph, tool_list: list):
+    from training.langchain.components.llm import fetch_llm_with_tools
+    model = fetch_llm_with_tools(tool_list)
+    messages = state.get("messages", [])
+    response = ""
+    if messages:
+        response = await model.ainvoke(messages)
+    return {"messages": [response]}

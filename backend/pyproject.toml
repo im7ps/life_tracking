@@ -27,6 +27,7 @@ langchain-community = "^0.4.1"
 langchain-google-genai = "^4.2.0"
 langgraph-checkpoint-postgres = ">=1.0.0"
 langgraph = "^1.0.9"
+psycopg-pool = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
