@@ -16,12 +16,12 @@ Padroneggiare la costruzione di sistemi agentici complessi, resilienti e osserva
 - **Nodes & Edges**: Nodi atomici e routing condizionale.
 - **Cycle Control**: Gestione dei loop.
 
-### 2. Tool Calling & DB Integration [ ]
+### 2. Tool Calling & DB Integration [x]
 - **ReAct Pattern**: Ciclo "Reasoning + Acting".
 - **Structured Output**: Generazione schema validati.
 - **Custom Tools**: Integrazione con SQLModel.
 
-### 3. Memory & Persistence (PostgreSQL) [ ]
+### 3. Memory & Persistence (PostgreSQL) [x]
 - **Checkpointers**: Uso di `PostgresSaver`.
 - **Thread-level Memory**: Sessioni multiple.
 
@@ -34,4 +34,4 @@ Padroneggiare la costruzione di sistemi agentici complessi, resilienti e osserva
 - **LangSmith Tracing**: Debugging e latenza.
 
 ---
-*Status: Punto 1 in fase di consolidamento (Modularizzazione e Cicli).*
+*Status: Punto 4 - Control Flow Avanzato & HITL.*
