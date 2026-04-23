@@ -6,12 +6,18 @@
 - **2026-04-21**: Q: Can an Edge modify the state? | A: No, only Nodes can modify the state. Edges define the path.
 - **2026-04-21**: Q: What happens if a router returns a string not in the map? | A: It results in a KeyError/Execution error in LangGraph.
 - **2026-04-21**: Q: Difference between `ainvoke` and `astream`? | A: `astream` allows sending tokens/events one by one (reducing TTFT), while `ainvoke` waits for the complete response.
-- **2026-04-21**: Q: Can I switch between `thread_id="1"` and `thread_id="2"`? | A: Yes, they are physically separated in the DB by their thread ID, allowing independent contexts.
+- **2026-04-21**: Q: Can I switch between `thread_id="1"` and `thread_id="2"`? | A: Yes, they are physically separated in the DB by their thread ID.
+- **2026-04-21**: Q: Why does the AI repeat the tool's output in its final message? | A: It's the agent synthesizing the technical result into a natural response for the user.
+- **2026-04-21**: Q: Where should state modifications (like updating a score) happen? | A: In a Node, not a Tool. Tools return data; Nodes apply it to the Graph State.
+- **2026-04-21**: Q: How does LangGraph handle parallel nodes return values? | A: Via Accumulation (queuing updates) and Reduction (applying them sequentially using reducers like `add_messages`).
 
 ## ⚠️ Partially Correct / Needs Review
 - **2026-04-21**: Q: What happens to the second tool call if the router only checks index [0]? | A: (Revised) The router ignores it, leading to infinite loops as the AI keeps waiting for the missing tool response.
-- **2026-04-21**: Q: If a node modifies a global variable, is it saved in the checkpointer? | A: (User thought: Yes because it's the only way). **Correction**: No. The checkpointer ONLY saves the `State` (the TypedDict). Global variables are outside the graph's scope and are NOT persisted.
-- **2026-04-21**: Q: How to handle two tools (A and B) in one turn? | A: (User thought: Create one node for both). **Correction**: The standard way is to use a `Conditional Edge` that returns a LIST of node names (e.g., `["node_a", "node_b"]`). LangGraph will execute them in parallel.
+- **2026-04-21**: Q: If a node modifies a global variable, is it saved in the checkpointer? | A: No. The checkpointer ONLY saves the `State`. Global variables are volatile.
+- **2026-04-21**: Q: How to handle multiple tools in parallel via Router? | A: (Revised) Return a `list[str]` of node names. LangGraph forks and joins them automatically.
+- **2026-04-21**: Q: Parallel vs Sequential DB updates? | A: (Revised) For writes/dependencies, use sequential logic (return one node at a time). For independent reads, parallel is safe.
 
 ## 🆕 New Questions Queue
-(To be populated in the next turn)
+- Q: What is "Time Travel" in LangGraph and how does it create forked timelines?
+- Q: How to use `app.update_state` to programmatically resolve an `interrupt` (e.g., handling a "No" from the user)?
+- Q: What is the difference between `ToolMessage` and `AIMessage` in terms of how the LLM perceives them in the history?

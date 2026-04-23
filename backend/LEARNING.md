@@ -2,6 +2,7 @@
 
 > [!IMPORTANT]
 > **Regola di Ingaggio**: Aspetta sempre che sia l'utente a confermare esplicitamente il passaggio al punto successivo della roadmap prima di fornire la teoria o le sfide del nuovo punto.
+> **Regola di Ingaggio**: Aspetta sempre che sia l'utente a chiedere le domande teoriche su cui allenarsi
 
 ## 🎓 Learning Mode: Q&A Protocol
 
