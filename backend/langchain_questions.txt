@@ -1,0 +1,17 @@
+# 📝 Master LangGraph: Question & Answer History
+
+## ✅ Well Answered
+- **2026-04-21**: Q: What happens if you remove `Annotated` and `add_messages` from the state? | A: Every message would overwrite the entire conversation.
+- **2026-04-21**: Q: What is the specific field in `config` that allows persistence? | A: `thread_id` inside `configurable`.
+- **2026-04-21**: Q: Can an Edge modify the state? | A: No, only Nodes can modify the state. Edges define the path.
+- **2026-04-21**: Q: What happens if a router returns a string not in the map? | A: It results in a KeyError/Execution error in LangGraph.
+- **2026-04-21**: Q: Difference between `ainvoke` and `astream`? | A: `astream` allows sending tokens/events one by one (reducing TTFT), while `ainvoke` waits for the complete response.
+- **2026-04-21**: Q: Can I switch between `thread_id="1"` and `thread_id="2"`? | A: Yes, they are physically separated in the DB by their thread ID, allowing independent contexts.
+
+## ⚠️ Partially Correct / Needs Review
+- **2026-04-21**: Q: What happens to the second tool call if the router only checks index [0]? | A: (Revised) The router ignores it, leading to infinite loops as the AI keeps waiting for the missing tool response.
+- **2026-04-21**: Q: If a node modifies a global variable, is it saved in the checkpointer? | A: (User thought: Yes because it's the only way). **Correction**: No. The checkpointer ONLY saves the `State` (the TypedDict). Global variables are outside the graph's scope and are NOT persisted.
+- **2026-04-21**: Q: How to handle two tools (A and B) in one turn? | A: (User thought: Create one node for both). **Correction**: The standard way is to use a `Conditional Edge` that returns a LIST of node names (e.g., `["node_a", "node_b"]`). LangGraph will execute them in parallel.
+
+## 🆕 New Questions Queue
+(To be populated in the next turn)

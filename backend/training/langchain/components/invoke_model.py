@@ -1,7 +1,7 @@
 from training.langchain.components.graph import Graph
-from training.langchain.components.llm import fetch_llm
 
 async def invoke_model(state: Graph):
+    from training.langchain.components.llm import fetch_llm
     model = fetch_llm()
     messages = state.get("messages", [])
     response = ""

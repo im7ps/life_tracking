@@ -24,3 +24,8 @@ async def get_user_rank_db(config: RunnableConfig) -> str:
         
         print(f"DEBUG TOOL: Recuperato rank {user.rank_score} per {user.username}")
         return f"L'utente {user.username} ha un Rank: {user.rank_score}"
+
+
+# @tool
+# async def delete_graph_score():
+#     """"Use this tool to delete the user's score"""
