@@ -2,7 +2,7 @@ import uuid
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import JSON, Column, func
 from app.models.utils import get_utc_now
 
 if TYPE_CHECKING:
@@ -18,6 +18,12 @@ class User(SQLModel, table=True):
     hashed_password: str
     is_active: bool = Field(default=True)
     rank_score: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    
+    onboarding_completed: bool = Field(default=False)  # Nuovo campo per tracciare l'onboarding
+    bio: dict = Field(
+                    default_factory=dict,
+                    sa_column=Column(JSON)
+                )
 
     # Usa la funzione helper, non la lambda, per massima pulizia
     created_at: datetime = Field(default_factory=get_utc_now)

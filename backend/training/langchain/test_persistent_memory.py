@@ -34,10 +34,10 @@ if backend_root not in sys.path:
 # -----------------------------------------------------------------------
 
 from langchain_core.messages import HumanMessage
-from components.invoke_model import invoke_model
-from components.graph import Graph
+from app.core.llm.components.invoke_model import invoke_model
+from app.core.llm.components.graph import Graph
 from langchain_core.runnables import RunnableConfig
-from components.persistent_memory import get_db_memory
+from app.core.llm.components.persistent_memory import get_db_memory
 
 
 def build_workflow():

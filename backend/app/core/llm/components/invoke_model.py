@@ -1,7 +1,7 @@
-from training.langchain.components.graph import Graph
+from app.core.llm.components.graph import Graph
 
 async def invoke_model(state: Graph):
-    from training.langchain.components.llm import fetch_llm
+    from app.core.llm.components.llm import fetch_llm
     model = fetch_llm()
     messages = state.get("messages", [])
     response = ""
@@ -10,7 +10,7 @@ async def invoke_model(state: Graph):
     return {"messages": [response]}
 
 async def invoke_model_with_tools(state: Graph, tool_list: list):
-    from training.langchain.components.llm import fetch_llm_with_tools
+    from app.core.llm.components.llm import fetch_llm_with_tools
     model = fetch_llm_with_tools(tool_list)
     messages = state.get("messages", [])
     response = ""

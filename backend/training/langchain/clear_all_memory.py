@@ -30,7 +30,7 @@ if not os.getenv("DATABASE_URL"):
         os.environ["DATABASE_URL"] = f"postgresql://{user}:{pw}@{host}:{port}/{db}"
         print(f"DEBUG: DATABASE_URL generata da variabili POSTGRES_*")
 
-from training.langchain.components.persistent_memory import get_db_memory
+from app.core.llm.components.persistent_memory import get_db_memory
 
 async def clear_all_memory():
     """Cancella tutti i dati di checkpoint dal database Postgres."""

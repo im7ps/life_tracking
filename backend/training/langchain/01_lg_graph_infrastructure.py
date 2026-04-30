@@ -1,6 +1,6 @@
 
-from backend.training.langchain.components.graph import Graph
-from backend.training.langchain.components.nodes import handle_portfolio, handle_rank, modify_category
+from app.core.llm.components.graph import Graph
+from app.core.llm.components.nodes import handle_portfolio, handle_rank, modify_category
 
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END

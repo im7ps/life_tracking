@@ -37,10 +37,10 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import tools_condition
 
 
-from backend.training.langchain.components.graph import Graph
-from backend.training.langchain.components.tools_builder import build_tool_node
-from backend.training.langchain.components.invoke_model import invoke_model
-from backend.training.langchain.components.tools import get_user_rank_db
+from app.core.llm.components.graph import Graph
+from app.core.llm.components.tools_builder import build_tool_node
+from app.core.llm.components.invoke_model import invoke_model
+from app.core.llm.components.tools import get_user_rank_db
 
 def build_workflow() -> StateGraph:
     tool_list = [get_user_rank_db]

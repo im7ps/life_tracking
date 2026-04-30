@@ -10,14 +10,20 @@
 - **2026-04-21**: Q: Why does the AI repeat the tool's output in its final message? | A: It's the agent synthesizing the technical result into a natural response for the user.
 - **2026-04-21**: Q: Where should state modifications (like updating a score) happen? | A: In a Node, not a Tool. Tools return data; Nodes apply it to the Graph State.
 - **2026-04-21**: Q: How does LangGraph handle parallel nodes return values? | A: Via Accumulation (queuing updates) and Reduction (applying them sequentially using reducers like `add_messages`).
+- **2026-04-29**: Q: Explain the lifecycle of an `interrupt` and how the graph resumes. | A: (User Answer: Correct) The graph takes a snapshot, stops, waits for user input, and resumes from that point replacing the interrupt with the input.
+- **2026-04-29**: Q: Why inject Rank/Portfolio in the System Prompt? | A: (User Answer: Correct) To reduce latency and "reasoning" overhead, trading token count for speed and direct awareness.
 
 ## ⚠️ Partially Correct / Needs Review
 - **2026-04-21**: Q: What happens to the second tool call if the router only checks index [0]? | A: (Revised) The router ignores it, leading to infinite loops as the AI keeps waiting for the missing tool response.
 - **2026-04-21**: Q: If a node modifies a global variable, is it saved in the checkpointer? | A: No. The checkpointer ONLY saves the `State`. Global variables are volatile.
 - **2026-04-21**: Q: How to handle multiple tools in parallel via Router? | A: (Revised) Return a `list[str]` of node names. LangGraph forks and joins them automatically.
 - **2026-04-21**: Q: Parallel vs Sequential DB updates? | A: (Revised) For writes/dependencies, use sequential logic (return one node at a time). For independent reads, parallel is safe.
+- **2026-04-29**: Q: Role of `add_messages` reducer. | A: (Revised) It's not just for duplicates, but to prevent total state overwrite. It handles merging by ID (UPSERT logic).
 
 ## 🆕 New Questions Queue
+- Q: What is the difference between `astream` and `astream_events(version="v2")`?
+- Q: Why should we use `configurable` for Service classes instead of putting them in the `GraphState`?
+- Q: How does `Command(resume=...)` interact with the `interrupt()` function inside a node?
 - Q: What is "Time Travel" in LangGraph and how does it create forked timelines?
 - Q: How to use `app.update_state` to programmatically resolve an `interrupt` (e.g., handling a "No" from the user)?
 - Q: What is the difference between `ToolMessage` and `AIMessage` in terms of how the LLM perceives them in the history?

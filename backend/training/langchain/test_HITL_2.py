@@ -36,7 +36,7 @@ if backend_root not in sys.path:
 # -----------------------------------------------------------------------
 
 from app.models.user import User
-from components.graph import Graph
+from app.core.llm.components.graph import Graph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -47,8 +47,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from app.database.session import async_engine
 
-from components.persistent_memory import get_db_memory
-from components.invoke_model import invoke_model_with_tools
+from app.core.llm.components.persistent_memory import get_db_memory
+from app.core.llm.components.invoke_model import invoke_model_with_tools
 
 @tool(extras={"type": "get"})
 async def get_user_stats(config: RunnableConfig) -> dict:

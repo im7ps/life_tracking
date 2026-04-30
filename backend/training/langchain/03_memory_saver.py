@@ -29,8 +29,8 @@ if backend_root not in sys.path:
     sys.path.insert(0, backend_root)
 # -----------------------------------------------------------------------
 
-from components.graph import Graph
-from components.invoke_model import invoke_model
+from app.core.llm.components.graph import Graph
+from app.core.llm.components.invoke_model import invoke_model
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver

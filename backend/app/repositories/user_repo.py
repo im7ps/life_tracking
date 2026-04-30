@@ -1,4 +1,5 @@
 from typing import Optional
+import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -39,7 +40,7 @@ class UserRepo:
 
     # --- Metodi Aggiunti manualmente (Decoupling da BaseRepo) ---
 
-    async def get(self, id: str) -> Optional[User]:
+    async def get(self, id: uuid.UUID) -> Optional[User]:
         """Recupera un utente per ID."""
         statement = select(self.model).where(self.model.id == id)
         result = await self.session.execute(statement)

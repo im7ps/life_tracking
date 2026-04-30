@@ -27,13 +27,13 @@ class UserService:
         
         hashed_password = None
         if "password" in update_data and update_data["password"]:
-             # SECURITY: Intercettiamo la password in chiaro.
-             # La hashiamo immediatamente e la rimuoviamo dal set di dati
-             # per evitare che giri in chiaro all'interno dell'applicazione.
-             import asyncio
-             loop = asyncio.get_running_loop()
-             hashed_password = await loop.run_in_executor(None, get_password_hash, update_data["password"])
-             del update_data["password"]
+            # SECURITY: Intercettiamo la password in chiaro.
+            # La hashiamo immediatamente e la rimuoviamo dal set di dati
+            # per evitare che giri in chiaro all'interno dell'applicazione.
+            import asyncio
+            loop = asyncio.get_running_loop()
+            hashed_password = await loop.run_in_executor(None, get_password_hash, update_data["password"])
+            del update_data["password"]
         
         # Creiamo il DTO Interno (UserUpdateDB).
         # Questo passaggio "sigilla" la trasformazione: da qui in poi,

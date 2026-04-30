@@ -29,9 +29,9 @@ if backend_root not in sys.path:
     sys.path.insert(0, backend_root)
 # -----------------------------------------------------------------------
 
-from training.langchain.components.graph import Graph
-from training.langchain.components.invoke_model import invoke_model
-from training.langchain.components.persistent_memory import get_db_memory
+from app.core.llm.components.graph import Graph
+from app.core.llm.components.invoke_model import invoke_model
+from app.core.llm.components.persistent_memory import get_db_memory
 
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
