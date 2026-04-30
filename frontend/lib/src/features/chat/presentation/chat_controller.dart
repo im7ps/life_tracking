@@ -22,6 +22,15 @@ class ChatController extends _$ChatController {
     return ChatState(sessionId: const Uuid().v4());
   }
 
+  void triggerHiddenWelcomeMessage() {
+    if (state.messages.isEmpty) {
+      print("[CHAT_DEBUG] Triggering hidden welcome message: 'Ciao!'");
+      _startAIStreaming("Ciao!", isHiddenTrigger: true);
+    } else {
+      print("[CHAT_DEBUG] Hidden trigger skipped: message history is not empty.");
+    }
+  }
+
   bool _isListening = false;
   bool get isListening => _isListening;
 
@@ -85,8 +94,11 @@ class ChatController extends _$ChatController {
     _startAIStreaming(text);
   }
 
-  Future<void> _startAIStreaming(String userText) async {
+  Future<void> _startAIStreaming(String userText, {bool isHiddenTrigger = false}) async {
     final repository = ref.read(chatRepositoryProvider);
+    final sessionId = state.sessionId;
+
+    print("[CHAT_DEBUG] Starting AI stream. Message: '$userText', IsHidden: $isHiddenTrigger");
 
     final responseId = const Uuid().v4();
     final initialResponse = ChatMessage(
@@ -101,9 +113,10 @@ class ChatController extends _$ChatController {
     StringBuffer fullText = StringBuffer();
 
     try {
+      print("[CHAT_DEBUG] Calling repository.streamChat with message: '$userText'");
       await for (final chunk in repository.streamChat(
         userText,
-        state.sessionId,
+        sessionId,
       )) {
         fullText.write(chunk);
 
@@ -144,10 +157,12 @@ class ChatController extends _$ChatController {
           ],
         );
       }
+      print("[CHAT_DEBUG] AI stream completed successfully for session: $sessionId");
 
       ref.read(taskListProvider.notifier).syncWithBackend();
       ref.invalidate(portfolioProvider);
     } catch (e) {
+      print("[CHAT_DEBUG] Error during AI stream: $e");
       state = state.copyWith(
         messages: [
           for (final msg in state.messages)
@@ -227,10 +242,12 @@ class ChatController extends _$ChatController {
           ],
         );
       }
+      print("[CHAT_DEBUG] AI stream completed successfully");
 
       ref.read(taskListProvider.notifier).syncWithBackend();
       ref.invalidate(portfolioProvider);
     } catch (e) {
+      print("[CHAT_DEBUG] Error during AI stream: $e");
       state = state.copyWith(
         messages: [
           for (final msg in state.messages)

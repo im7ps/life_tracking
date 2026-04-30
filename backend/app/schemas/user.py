@@ -33,7 +33,9 @@ class UserUpdate(TunableBaseModel):
     password: Optional[str] = None
     rank_score: Optional[int] = None
     onboarding_completed: Optional[bool] = None
+    timezone: Optional[str] = None
     bio: Optional[dict] = Field(default_factory=dict)
+
 
     @field_validator("password")
     def validate_password(cls, v: Optional[str]) -> Optional[str]:
@@ -56,8 +58,9 @@ class UserUpdateDB(TunableBaseModel):
     email: Optional[EmailStr] = None
     hashed_password: Optional[str] = None
     rank_score: Optional[int] = None
-    bio: Optional[dict] = Field(default_factory=dict)
     onboarding_completed: Optional[bool] = None
+    timezone: Optional[str] = None
+    bio: Optional[dict] = Field(default_factory=dict)
 
 # Schema for the api response, this is what the user sees Eg: get request by the user, the password is not shown publicly
 class UserPublic(SQLModel):
@@ -66,8 +69,10 @@ class UserPublic(SQLModel):
     email: str
     rank_score: int
     created_at: datetime
+    onboarding_completed: bool
+    timezone: str
+
     bio: Optional[dict] = Field(default_factory=dict)
-    onboarding_completed: Optional[bool] = None
 
 # Schema per il TOKEN
 class Token(SQLModel):

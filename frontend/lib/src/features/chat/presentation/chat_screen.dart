@@ -63,6 +63,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatControllerProvider.notifier).triggerHiddenWelcomeMessage();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatControllerProvider);
     final messages = chatState.messages;

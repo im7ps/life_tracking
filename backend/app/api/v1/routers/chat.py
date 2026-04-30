@@ -19,8 +19,8 @@ async def stream_chat(
 ):
     """
     Endpoint per lo streaming della chat con il Consulente Day 0.
-    Utilizza LangChain per generare consigli personalizzati basati sul contesto utente.
     """
+    print(f"DEBUG: Router POST /stream - user: {current_user.id}, msg: {request.message}")
     return StreamingResponse(
         chat_service.stream_chat(current_user.id, request.message, request.session_id),
         media_type="text/event-stream"
