@@ -1,7 +1,12 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 import structlog
 import os
 
@@ -14,13 +19,13 @@ from app.core.exceptions import (
     InvalidCredentials,
     DomainValidationError,
 )
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-
 from app.core.logging import configure_logging
 from app.core.config import settings
 from app.core.rate_limit import limiter
+
 from app.services.chat_graph import compile_graph
+
+from app.database.session import async_engine
 
 
 # Inizializza il logging strutturato prima della creazione dell'app
@@ -64,7 +69,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("Failed to initialize LangGraph checkpointer pool", error=str(e))
         yield
-
+    finally:
+        await async_engine.dispose()
+        logger.info("Database engine pool closed")
     logger.info("Application shutting down")
 
 

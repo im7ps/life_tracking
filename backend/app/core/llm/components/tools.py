@@ -1,9 +1,9 @@
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from app.database.session import async_engine
 from app.models.user import User
+from app.database.session import AsyncSessionFactory
 
 @tool
 async def get_user_rank_db(config: RunnableConfig) -> str:
@@ -14,7 +14,7 @@ async def get_user_rank_db(config: RunnableConfig) -> str:
     if not user_id:
         return "Errore: ID utente mancante."
 
-    async with AsyncSession(async_engine) as session:
+    async with AsyncSessionFactory() as session:
         statement = select(User).where(User.id == user_id)
         result = await session.execute(statement)
         user = result.scalar_one_or_none()
