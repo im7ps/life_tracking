@@ -223,7 +223,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           
                           // Action Button (Lightning Bolt)
                           GestureDetector(
-                            onTap: () => context.push('/consultant'),
+                            onTap: () => context.push('/chat'),
                             child: Container(
                               height: 64,
                               width: 64,

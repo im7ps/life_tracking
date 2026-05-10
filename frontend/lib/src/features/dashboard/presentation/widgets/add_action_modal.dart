@@ -149,7 +149,7 @@ class _AddActionModalState extends ConsumerState<AddActionModal> {
                           _selectedDimensionId = selected ? dim.id : null;
                           // Optional: Clear activity if dimension changes and current activity is not valid for new dim
                           if (_selectedActionKey != null && !ActionCategory.isKnown(_selectedActionKey)) {
-                             _selectedActionKey = null;
+                              _selectedActionKey = null;
                           }
                         });
                       },

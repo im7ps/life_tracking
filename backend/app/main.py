@@ -42,16 +42,19 @@ async def lifespan(app: FastAPI):
     from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
     from psycopg_pool import AsyncConnectionPool
     
-    conn_string = os.getenv("DATABASE_URL")
+    conn_string = settings.DATABASE_URL
     if not conn_string:
         logger.error("DATABASE_URL not set, chat graph will not work")
         yield
         return
+    
+    # Psycopg (usato qui da AsyncConnectionPool) vuole una URL standard (senza +psycopg).
+    # Rimuoviamo eventuali driver SQLAlchemy se presenti.
+    clean_conn_string = conn_string.replace("+psycopg", "").replace("+asyncpg", "")
 
     # Usiamo un pool di connessioni per gestire la concorrenza e la stabilità
-    # Importante: AsyncPostgresSaver può accettare un pool direttamente
     try:
-        async with AsyncConnectionPool(conn_string, max_size=20, kwargs={"autocommit": True}) as pool:
+        async with AsyncConnectionPool(clean_conn_string, max_size=20, kwargs={"autocommit": True}) as pool:
             checkpointer = AsyncPostgresSaver(pool)
             # Setup crea le tabelle se non esistono
             await checkpointer.setup()
@@ -61,7 +64,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("Failed to initialize LangGraph checkpointer pool", error=str(e))
         yield
-        
+
     logger.info("Application shutting down")
 
 
@@ -77,6 +80,7 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # Configurazione Rate Limiting
 app.state.limiter = limiter
+app.state.app_graph = None
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configurazione CORS

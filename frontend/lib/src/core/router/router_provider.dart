@@ -76,7 +76,12 @@ GoRouter router(Ref ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login', builder: (context, state) => const LoginScreen()
+      ),
+      GoRoute(
+        path: '/', builder: (context, state) => const DashboardScreen()
+      ),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
@@ -97,7 +102,6 @@ GoRouter router(Ref ref) {
         path: '/chat',
         builder: (context, state) => const ChatScreen(),
       ),
-      GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),

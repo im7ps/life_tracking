@@ -1,4 +1,5 @@
 import uuid
+from app.core.llm.components.llm import fetch_llm
 import structlog
 from typing import AsyncGenerator
 from langchain_core.messages import HumanMessage, BaseMessage
@@ -48,7 +49,15 @@ class ChatService:
             onboarding_data = UserOnboardingData()
         
         # 3. CONFIGURAZIONE E MESSAGGI
-        config = {"configurable": {"thread_id": f"{user_id}_{session_id}", "user_id": str(user_id)}}
+        llm = fetch_llm()
+        config = {
+                "configurable": {
+                    "thread_id": f"{user_id}_{session_id}",
+                    "user_id": user_id,
+                    "user_service": self.user_service,
+                    "llm": llm,
+                }
+            }
         
         # Innesco reale per Gemini
         display_message = message if message and message.strip() else "Inizia sessione"
@@ -57,7 +66,6 @@ class ChatService:
         # 4. INIZIALIZZAZIONE STATO
         initial_state = {
             "messages": messages,
-            "user_id": str(user_id),
             "onboarding_data": onboarding_data
         }
         
@@ -73,7 +81,10 @@ class ChatService:
                 config, 
                 stream_mode="messages"
             ):
-                if isinstance(chunk, BaseMessage) and chunk.type == "AIMessageChunk" and metadata['langgraph_node'] == "agent":
+                if isinstance(chunk, BaseMessage) and \
+                    chunk.type == "AIMessageChunk" and \
+                    chunk.content and not \
+                    getattr(chunk, "tool_call_chunks", None): #and metadata['langgraph_node'] == "agent":
                     if chunk.content:
                         yield str(chunk.content)
         except Exception as e:

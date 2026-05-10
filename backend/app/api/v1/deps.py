@@ -147,5 +147,5 @@ def get_chat_service(
         user_service,
         action_service,
         consultant_service,
-        app_graph=request.app.state.app_graph,
+        app_graph=getattr(request.app.state, "app_graph", None),
     )

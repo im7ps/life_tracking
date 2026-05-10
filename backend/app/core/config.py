@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # In produzione DEVE essere popolato e NON deve contenere localhost.
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+    DATABASE_URL: str
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         """

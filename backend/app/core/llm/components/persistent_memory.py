@@ -3,9 +3,10 @@ from multiprocessing import pool
 import os
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
+from app.core.config import settings
 
 # Usiamo la stessa URL del tuo DB principale
-DB_URI = os.getenv("DATABASE_URL")
+DB_URI = settings.DATABASE_URL
 
 async def get_db_memory():
     # 1. Pool di connessioni asincrone

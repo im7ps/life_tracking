@@ -1,3 +1,4 @@
+from app.schemas.ai_onboarding import UserOnboardingData
 from sqlalchemy.exc import IntegrityError
 import uuid
 
@@ -99,3 +100,24 @@ class UserService:
         """
         # Assumes the repository has a generic 'get' method accepting an ID
         return await self.user_repo.get(user_id)
+
+    async def update_onboarding(self, user_id: uuid.UUID, onboarding_data: UserOnboardingData) -> User | None:
+        """
+        Service to update the user's onboarding data.
+        Contact point from the AI to the database.
+        """
+        db_user = await self.user_repo.get(user_id)
+        if not db_user:
+            return None
+        
+        new_timezone = onboarding_data.timezone or getattr(db_user, 'timezone', 'UTC')
+        update_dto = UserUpdateDB(
+            bio=onboarding_data.model_dump(),
+            onboarding_completed=onboarding_data.is_complete,
+            timezone=new_timezone,
+        )
+        
+        updated_user = await self.user_repo.update(db_user, update_dto)
+        await self.session.commit()
+        await self.session.refresh(updated_user)
+        return updated_user

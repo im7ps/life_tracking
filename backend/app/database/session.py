@@ -4,11 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 from app.core.config import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
 # Il driver psycopg (v3) usa un dialetto diverso.
 # Sostituiamo lo schema per assicurarci che SQLAlchemy usi il driver corretto.
-ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
+ASYNC_DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
 
 # L'engine asincrono è il punto d'ingresso per le connessioni al database in un'app asincrona.
 async_engine = create_async_engine(
