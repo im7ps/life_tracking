@@ -14,7 +14,8 @@ async def get_user_rank_db(config: RunnableConfig) -> str:
     if not user_id:
         return "Errore: ID utente mancante."
 
-    async with AsyncSessionFactory() as session:
+    session = AsyncSessionFactory()
+    try:
         statement = select(User).where(User.id == user_id)
         result = await session.execute(statement)
         user = result.scalar_one_or_none()
@@ -24,6 +25,12 @@ async def get_user_rank_db(config: RunnableConfig) -> str:
         
         print(f"DEBUG TOOL: Recuperato rank {user.rank_score} per {user.username}")
         return f"L'utente {user.username} ha un Rank: {user.rank_score}"
+    except Exception as e:
+        print(f"DEBUG TOOL: Errore durante l'accesso al DB: {e}")
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
 
 
 # @tool

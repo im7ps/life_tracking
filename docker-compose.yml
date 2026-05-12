@@ -29,6 +29,7 @@ services:
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic
     environment:
+        # Si noti db:5432 e non localhost perchè all'interno della rete Docker i container comunicano usando i nomi dei servizi.
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
@@ -46,7 +47,7 @@ services:
   # --- TEST INFRASTRUCTURE (Profile: test) ---
   db-test:
     image: postgres:15
-    profiles: ["test"]  # <--- FONDAMENTALE: Non parte con 'docker compose up' standard
+    profiles: ["test"]  # Non parte con 'docker compose up' standard ma gira sulla RAM per non sporcare il db originale
     tmpfs: 
       - /var/lib/postgresql/data # DB in RAM: rapidissimo e sempre pulito al riavvio
     environment:
@@ -64,7 +65,7 @@ services:
     build:
       context: ./backend
       target: development
-    profiles: ["test"] # Parte solo se richiesto esplicitamente
+    profiles: ["test"] # Vedi sopra
     volumes:
       - ./backend:/app # Mount del codice per hot-reloading dei test
       - /app/.venv # Preserva il venv del container linux, ignorando quello dell'host
@@ -85,7 +86,7 @@ services:
     build:
       context: ./backend
       target: development
-    profiles: ["load"] # Separato per non appesantire
+    profiles: ["load"] # Vedi sopra
     depends_on:
       - backend
     volumes:

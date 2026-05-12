@@ -1,31 +1,21 @@
-
-from pyexpat.errors import messages
-import uuid
 import structlog
 from typing import Annotated, Literal, TypedDict, cast
 
-from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
-from langgraph.prebuilt import ToolNode
 
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from app.repositories.user_repo import UserRepo
 from app.schemas.ai_onboarding import UserOnboardingData
-from app.core.llm.components.llm import fetch_llm_with_tools, fetch_llm
-from app.core.llm.components.invoke_model import invoke_model, invoke_model_with_tools
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.session import async_engine
-from app.schemas.user import UserUpdateDB
+from app.core.llm.components.llm import fetch_llm
 
 logger = structlog.get_logger()
 
 class Graph(TypedDict, total=False):
     messages: Annotated[list[BaseMessage], add_messages]
     onboarding_data: UserOnboardingData
-    error: str | None
+    error_state: str | None
     is_updated: bool
 
 
@@ -46,9 +36,9 @@ async def error_handling_node(state: Graph):
     # Gemini fix: needs at least one HumanMessage. We add a support message.
     response = await llm.ainvoke([
         SystemMessage(content=system_msg),
-        HumanMessage(content="C'è stato un errore tecnico, per favore scusati.")
+        # HumanMessage(content="C'è stato un errore tecnico, per favore scusati.")
     ])
-    return {"messages": [response], "error": None}
+    return {"messages": [response], "error_state": error_type}
 
 
 async def data_extractor_node(state: Graph, config: RunnableConfig) -> Graph:
@@ -93,35 +83,35 @@ async def data_extractor_node(state: Graph, config: RunnableConfig) -> Graph:
                     new_info=new_data_dict, 
                     final_state=final_data.model_dump(exclude_none=True))
         
-        return {"onboarding_data": final_data, "is_updated": has_changes}
+        return {"onboarding_data": final_data, "is_updated": has_changes, "error_state": None}
     except Exception as e:
         # Invece di andare in errore fatale, logghiamo e restituiamo i dati correnti.
         logger.warning("data_extraction_failed", error=str(e), user_input=messages[-1].content)
-        return {"onboarding_data": current_data, "is_updated": False}
+        return {"onboarding_data": current_data, "is_updated": False, "error_state": "DATA_ERROR"}
 
 
 async def save_to_db_node(state: Graph, config: RunnableConfig) -> Graph:
     user_id = config.get("configurable", {}).get("user_id", None)
     user_service = config.get("configurable", {}).get("user_service", None)
-    data = state.get("onboarding_data", None)
+    onboarding_data = state.get("onboarding_data", None)
 
-    if not all([user_id, user_service, data]):
+    if not all([user_id, user_service, onboarding_data]):
         logger.error(
             "save_to_db_missing_dependencies",
             user_id=bool(user_id),
             service=bool(user_service),
-            data=bool(data)
+            data=bool(onboarding_data)
             )
-        return {"error": "DATA_ERROR"}
+        return {"error_state": "DATA_ERROR"}
 
     try:
-        updated_user = await user_service.update_onboarding(user_id, data)
+        updated_user = await user_service.update_onboarding(user_id, onboarding_data)
         if updated_user:
             logger.info("user_onboarding_saved_success", user_id=user_id)
-            return {"is_updated": False}
+            return {"is_updated": False, "error_state": None}
     except Exception as e:
         logger.error("database_save_failed", error=str(e))
-        return {"error": "DATABASE_ERROR"}
+        return {"error_state": "DATABASE_ERROR"}
     return {}
 
 
@@ -140,7 +130,7 @@ async def invoke_model_with_data(state: Graph) -> Graph:
 
     if not data:
         logger.error("invoke_model_missing_onboarding_data")
-        return {"error": "DATA_ERROR"}
+        return {"error_state": "DATA_ERROR"}
 
     system_prompt = (
                         f"{personality}\n"
@@ -167,22 +157,23 @@ async def invoke_model_with_data(state: Graph) -> Graph:
         return {"messages": [response]}
     except Exception as e:
         logger.error("invoke_model_failed", error=str(e))
-        return {"error": "MODEL_ERROR"}
+        return {"error_state": "MODEL_ERROR"}
 
 
 def error_router(state: Graph) -> Literal["error_node", "continue"]:
-    error = state.get("error", None)
+    error = state.get("error_state", None)
     if error:
         return "error_node"
     return "continue"
 
 
 def post_extraction_router(state: Graph) -> Literal["error_node", "saver", "agent"]:
-    if state.get("error", None):
+    if state.get("error_state", None):
         return "error_node"
     if state.get("is_updated", False):
         return "saver"
     return "agent"
+
 
 def onboarding_router(state: Graph) -> Literal["data_extractor", "agent"]:
     onboarding_data = state.get("onboarding_data", None)
@@ -194,6 +185,7 @@ def onboarding_router(state: Graph) -> Literal["data_extractor", "agent"]:
     if onboarding_data and not onboarding_data.is_complete:
         return "data_extractor"
     return "agent"
+
 
 def build_workflow() -> StateGraph:
 
@@ -217,6 +209,7 @@ def build_workflow() -> StateGraph:
     workflow.add_edge("agent", END)
 
     return workflow
+
 
 def compile_graph(checkpointer=None):
     return build_workflow().compile(checkpointer=checkpointer)

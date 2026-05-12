@@ -14,8 +14,6 @@ from app.services.auth_service import AuthService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-# --- Dependency Injection Provider Functions ---
-
 def get_user_repo(session: Annotated[AsyncSession, Depends(get_session)]) -> UserRepo:
     return UserRepo(session)
 
@@ -134,7 +132,10 @@ def get_consultant_service(
     engine: Annotated[Any, Depends(get_consultant_engine)]
 ) -> Any:
     from app.services.consultant_service import ConsultantService
-    return ConsultantService(action_service, engine)
+    return ConsultantService(
+        action_service,
+        engine
+    )
 
 def get_chat_service(
     request: Request,

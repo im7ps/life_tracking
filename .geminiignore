@@ -1,0 +1,25 @@
+# File contenenti secrets e credenziali
+.env
+.env.*
+*.pem
+*.key
+
+# Directory di sistema e cache
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+.venv/
+venv/
+env/
+
+# Database e dati locali
+*.sqlite3
+*.db
+postgres_data/
+
+# Build e log
+*.log
+dist/
+build/

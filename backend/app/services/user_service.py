@@ -49,6 +49,7 @@ class UserService:
         await self.session.refresh(updated_user)
         return updated_user
 
+
     async def create_user(self, user_create: UserCreate) -> User:
         """
         Main service to create a user, handling business logic for validation and creation.
@@ -88,11 +89,13 @@ class UserService:
             await self.session.rollback()
             raise
 
+
     async def get_user_by_username(self, username: str) -> User | None:
         """
         Service to retrieve a user by username.
         """
         return await self.user_repo.get_by_username(username)
+
 
     async def get_user_by_id(self, user_id: uuid.UUID) -> User | None:
         """
@@ -100,6 +103,7 @@ class UserService:
         """
         # Assumes the repository has a generic 'get' method accepting an ID
         return await self.user_repo.get(user_id)
+
 
     async def update_onboarding(self, user_id: uuid.UUID, onboarding_data: UserOnboardingData) -> User | None:
         """

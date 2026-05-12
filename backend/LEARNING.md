@@ -45,9 +45,9 @@ Per ogni implementazione, seguiamo rigorosamente questi criteri di robustezza:
 - **Checkpointers**: Uso di `PostgresSaver`.
 - **Thread-level Memory**: Sessioni multiple.
 
-### 4. Control Flow Avanzato & HITL [ ]
+### 4. Control Flow Avanzato & HITL [/]
 - **Human-in-the-Loop**: Breakpoints e approvazioni.
-- **Time Travel**: Modifica stati precedenti.
+- **Time Travel**: Modifica stati precedenti. (CONSOLIDATO)
 
 ### 5. Production & Observability [ ]
 - **FastAPI Integration**: Streaming asincrono.

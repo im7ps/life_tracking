@@ -1,8 +1,10 @@
 import uuid
-from app.core.llm.components.llm import fetch_llm
 import structlog
 from typing import AsyncGenerator
+
 from langchain_core.messages import HumanMessage, BaseMessage
+
+from app.core.llm.components.llm import fetch_llm
 from app.services.user_service import UserService
 from app.schemas.ai_onboarding import UserOnboardingData
 from app.services.action_service import ActionService
@@ -81,12 +83,15 @@ class ChatService:
                 config, 
                 stream_mode="messages"
             ):
-                if isinstance(chunk, BaseMessage) and \
-                    chunk.type == "AIMessageChunk" and \
-                    chunk.content and not \
-                    getattr(chunk, "tool_call_chunks", None): #and metadata['langgraph_node'] == "agent":
-                    if chunk.content:
-                        yield str(chunk.content)
+                # Filtra solo i chunk dal nodo 'agent' che sono AIMessageChunk con contenuto testuale
+                if (
+                    metadata.get("langgraph_node") == "agent"
+                    and isinstance(chunk, BaseMessage)
+                    and chunk.type == "AIMessageChunk"
+                    and chunk.content
+                    and not getattr(chunk, "tool_call_chunks", None) # Esclude tool calls esplicite
+                ):
+                    yield str(chunk.content)
         except Exception as e:
             logger.exception("chat_graph_stream_failed", error=str(e), user_id=user_id)
             yield f"Ouch! Ho avuto un piccolo problema tecnico: {str(e)}"

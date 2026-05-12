@@ -12,7 +12,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = "default"
 
 @router.post("/stream")
-async def stream_chat(
+async def call_stream_chat(
     request: ChatRequest,
     current_user: CurrentUser,
     chat_service: ChatService = Depends(get_chat_service),
@@ -20,9 +20,13 @@ async def stream_chat(
     """
     Endpoint per lo streaming della chat con il Consulente Day 0.
     """
-    print(f"DEBUG: Router POST /stream - user: {current_user.id}, msg: {request.message}")
+    print(f"DEBUG: Router POST /stream - user: {current_user.id}, msg: {request.message}\n\n")
     return StreamingResponse(
-        chat_service.stream_chat(current_user.id, request.message, request.session_id),
+        chat_service.stream_chat(
+            current_user.id,
+            request.message,
+            request.session_id
+        ),
         media_type="text/event-stream"
     )
 
@@ -40,6 +44,10 @@ async def confirm_tool(
     Endpoint per ricevere la conferma dell'utente riguardo all'esecuzione di un tool suggerito.
     """
     return StreamingResponse(
-        chat_service.resume_chat(current_user.id, request.confirmed, request.session_id),
+        chat_service.resume_chat(
+            current_user.id,
+            request.confirmed,
+            request.session_id
+        ),
         media_type="text/event-stream"
     )
